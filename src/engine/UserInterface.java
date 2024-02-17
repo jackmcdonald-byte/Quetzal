@@ -8,7 +8,7 @@ import javax.swing.*;
 //temporary class until Universal Chess Interface is implemented
 
 public class UserInterface extends JPanel {
-    static long WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK;
+    public static long WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK;
     static long UniversalWP, UniversalWN, UniversalWB, UniversalWR, UniversalWQ, UniversalWK, UniversalBP, UniversalBN, UniversalBB, UniversalBR, UniversalBQ, UniversalBK;
     static int humanIsWhite, rating;
     static int border;
@@ -38,6 +38,7 @@ public class UserInterface extends JPanel {
 
     public static void newGame() {
         BoardGenerator.initiateStandardBoard();
+        Moves.possibleMovesWhite("", WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class UserInterface extends JPanel {
             int j = -1, k = -1;
             long[] pieces = {WP, BP, WB, BB, WN, BN, WQ, BQ, WR, BR, WK, BK};
             int[] pieceValues = {5, 5, 4, 4, 3, 3, 0, 0, 2, 2, 1, 1};
-            int[] colorValues = {1, 0};
+            int[] colorValues = {humanIsWhite, 1 - humanIsWhite};
 
             for (int p = 0; p < pieces.length; p++) {
                 if (((pieces[p] >> i) & 1) == 1) {
@@ -81,11 +82,9 @@ public class UserInterface extends JPanel {
                     break;
                 }
             }
-            if (j != -1 && k != -1) {
-                g.drawImage(chessPieceImage, (int) ((i % 8) * squareSize) + border, (int) ((i / 8) * squareSize) + border,
-                        (int) ((i % 8 + 1) * squareSize) + border, (int) ((i / 8 + 1) * squareSize) + border, j * 60,
-                        k * 60, (j + 1) * 60, (k + 1) * 60, this);
-            }
+            g.drawImage(chessPieceImage, (int) ((i % 8) * squareSize) + border, (int) ((i / 8) * squareSize) + border,
+                    (int) ((i % 8 + 1) * squareSize) + border, (int) ((i / 8 + 1) * squareSize) + border, j * 60,
+                    k * 60, (j + 1) * 60, (k + 1) * 60, this);
         }
     }
 
