@@ -23,16 +23,30 @@ public class BoardGenerator {
 
         //For simplicity, we can initialize the board with a 2D array of strings
         //Note: Fischer Random and FEN have unique initialization methods
-        String[][] board = {
-                {"r", "n", "b", "q", "k", "b", "n", "r"},
-                {"p", "p", "p", "p", "p", "p", "p", "p"},
-                {" ", " ", " ", " ", " ", " ", " ", " "},
-                {" ", " ", " ", " ", " ", " ", " ", " "},
-                {" ", " ", " ", " ", " ", " ", " ", " "},
-                {" ", " ", " ", " ", " ", " ", " ", " "},
-                {"P", "P", "P", "P", "P", "P", "P", "P"},
-                {"R", "N", "B", "Q", "K", "B", "N", "R"}
-        };
+        String[][] board = new String[0][];
+        if (UserInterface.humanIsWhite == 1) {
+            board = new String[][]{
+                    {"r", "n", "b", "q", "k", "b", "n", "r"},
+                    {"p", "p", "p", "p", "p", "p", "p", "p"},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {"P", "P", "P", "P", "P", "P", "P", "P"},
+                    {"R", "N", "B", "Q", "K", "B", "N", "R"}
+            };
+        } else {
+            board = new String[][]{
+                    {"R", "N", "B", "K", "Q", "B", "N", "R"},
+                    {"P", "P", "P", "P", "P", "P", "P", "P"},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {" ", " ", " ", " ", " ", " ", " ", " "},
+                    {"p", "p", "p", "p", "p", "p", "p", "p"},
+                    {"r", "n", "b", "k", "q", "b", "n", "r"},
+            };
+        }
 
         arrayToBitboards(board, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
     }

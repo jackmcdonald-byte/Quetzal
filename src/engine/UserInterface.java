@@ -72,7 +72,7 @@ public class UserInterface extends JPanel {
             int j = -1, k = -1;
             long[] pieces = {WP, BP, WB, BB, WN, BN, WQ, BQ, WR, BR, WK, BK};
             int[] pieceValues = {5, 5, 4, 4, 3, 3, 0, 0, 2, 2, 1, 1};
-            int[] colorValues = {humanIsWhite, 1 - humanIsWhite};
+            int[] colorValues = {1, 0};
 
             for (int p = 0; p < pieces.length; p++) {
                 if (((pieces[p] >> i) & 1) == 1) {
@@ -86,7 +86,6 @@ public class UserInterface extends JPanel {
                         (int) ((i % 8 + 1) * squareSize) + border, (int) ((i / 8 + 1) * squareSize) + border, j * 60,
                         k * 60, (j + 1) * 60, (k + 1) * 60, this);
             }
-            // rest of your code
         }
     }
 
