@@ -31,7 +31,7 @@ public class BoardGenerator {
                 {" ", " ", " ", " ", " ", " ", " ", " "},
                 {" ", " ", " ", " ", " ", " ", " ", " "},
                 {"P", "P", "P", "P", "P", "P", "P", "P"},
-                {"R", "B", "N", "Q", "K", "B", "N", "R"}
+                {"R", "N", "B", "Q", "K", "B", "N", "R"}
         };
 
         arrayToBitboards(board, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
@@ -44,7 +44,7 @@ public class BoardGenerator {
 
     //TODO add FEN functionality
 
-    public static void importFEN() {
+    public static void importFEN(String input) {
         //
     }
 
@@ -74,6 +74,18 @@ public class BoardGenerator {
             }
         }
         drawArray(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+        UserInterface.WP = WP;
+        UserInterface.WN = WN;
+        UserInterface.WB = WB;
+        UserInterface.WR = WR;
+        UserInterface.WQ = WQ;
+        UserInterface.WK = WK;
+        UserInterface.BP = BP;
+        UserInterface.BN = BN;
+        UserInterface.BB = BB;
+        UserInterface.BR = BR;
+        UserInterface.BQ = BQ;
+        UserInterface.BK = BK;
     }
 
     public static long stringToBitboard(String binary) {
