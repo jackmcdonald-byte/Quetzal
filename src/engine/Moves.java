@@ -39,6 +39,19 @@ public class Moves {
     static long OCCUPIED;
     static long EMPTY;
 
+    public static String generateMoves(long WP, long WN, long WB, long WR, long WQ, long WK,
+                                       long BP, long BN, long BB, long BR, long BQ, long BK, long EP, boolean CWK,
+                                       boolean CWQ, boolean CBK, boolean CBQ, boolean WhiteToMove) {
+        String moves;
+        if (WhiteToMove) {
+            moves = possibleMovesWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CWK, CWQ, CBK, CBQ);
+        } else {
+            moves = possibleMovesBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CWK, CWQ, CBK, CBQ);
+        }
+
+        return legalMoves(moves, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CWK, CWQ, CBK, CBQ, WhiteToMove);
+    }
+
     //general formula for moves along a mask = (o&m - 2s) ^ ((o&m)' - 2s')'
     //where o is OCCUPIED, m is mask, s is slider, and ' is reverse
     public static long horizontalAndVerticalMoves(int slider) {
@@ -674,6 +687,32 @@ public class Moves {
         unsafe |= possibility;
 
         return unsafe;
+    }
+
+    public static String legalMoves (String moves, long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN, long BB, long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ, boolean CBK, boolean CBQ, boolean WhiteToMove) {
+        StringBuilder legalMoves = new StringBuilder();
+
+        for (int i = 0; i < moves.length(); i += 4) {
+            char move1 = moves.charAt(i);
+            char move2 = moves.charAt(i + 1);
+            char move3 = moves.charAt(i + 2);
+            char move4 = moves.charAt(i + 3);
+
+            long WPt = Moves.makeMove(WP, move1, move2, move3, move4, 'P'), WNt = Moves.makeMove(WN, move1, move2, move3, move4, 'N'),
+                    WBt = Moves.makeMove(WB, move1, move2, move3, move4, 'B'), WRt = Moves.makeMove(WR, move1, move2, move3, move4, 'R'),
+                    WQt = Moves.makeMove(WQ, move1, move2, move3, move4, 'Q'), WKt = Moves.makeMove(WK, move1, move2, move3, move4, 'K'),
+                    BPt = Moves.makeMove(BP, move1, move2, move3, move4, 'p'), BNt = Moves.makeMove(BN, move1, move2, move3, move4, 'n'),
+                    BBt = Moves.makeMove(BB, move1, move2, move3, move4, 'b'), BRt = Moves.makeMove(BR, move1, move2, move3, move4, 'r'),
+                    BQt = Moves.makeMove(BQ, move1, move2, move3, move4, 'q'), BKt = Moves.makeMove(BK, move1, move2, move3, move4, 'k'),
+                    EPt = Moves.makeMoveEP(WP | BP, String.valueOf(new char[]{move1, move2, move3, move4}));
+            WRt=Moves.makeMoveCastle(WRt, WK|BK, String.valueOf(new char[]{move1, move2, move3, move4}), 'R');
+            BRt=Moves.makeMoveCastle(BRt, WK|BK, String.valueOf(new char[]{move1, move2, move3, move4}), 'r');
+            if (((WKt & Moves.unsafeForWhite(WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt)) == 0 && WhiteToMove) ||
+                    ((BKt & Moves.unsafeForBlack(WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt)) == 0 && !WhiteToMove)) {
+                legalMoves.append(move1).append(move2).append(move3).append(move4);
+            }
+        }
+        return legalMoves.toString();
     }
 
     public static void drawBitboard(long bitBoard) {

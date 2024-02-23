@@ -27,16 +27,17 @@ public class UserInterface extends JPanel {
     }
 
     public static void main(String[] args) {
-        javaF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        javaF.add(javaUI);
-        javaF.setSize(757, 570);
-        javaF.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - javaF.getWidth()) / 2,
-                (Toolkit.getDefaultToolkit().getScreenSize().height - javaF.getHeight()) / 2);
-        javaF.setVisible(true);
-        newGame();
-//        BoardGenerator.importFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
-//        BoardGenerator.importFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        UCI.uciCommunication();
+//        javaF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        javaF.add(javaUI);
+//        javaF.setSize(757, 570);
+//        javaF.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - javaF.getWidth()) / 2,
+//                (Toolkit.getDefaultToolkit().getScreenSize().height - javaF.getHeight()) / 2);
+//        javaF.setVisible(true);
+//        newGame();
         BoardGenerator.importFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+//        BoardGenerator.importFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+//        BoardGenerator.importFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
 //        BoardGenerator.importFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -");
 //        BoardGenerator.importFEN("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
 //        BoardGenerator.importFEN("1k6/1b6/8/8/7R/8/8/4K2R b K - 0 1");
@@ -59,14 +60,14 @@ public class UserInterface extends JPanel {
 //        BoardGenerator.importFEN("");
 //        BoardGenerator.importFEN("");
 //        BoardGenerator.initiateStandardBoard();
-        BoardGenerator.drawArray(WP,WN,WB,WR,WQ,WK,BP,BN,BB,BR,BQ,BK);
+        BoardGenerator.drawArray(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK);
         long startTime=System.currentTimeMillis();
-        Perft.perftRoot(WP,WN,WB,WR,WQ,WK,BP,BN,BB,BR,BQ,BK,EP,CWK,CWQ,CBK,CBQ,whiteToMove,0);
+        Perft.perftRoot(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove, 0);
         long endTime=System.currentTimeMillis();
         System.out.println("Nodes: "+Perft.perftTotalMoveCounter);
         System.out.println("That took "+(endTime-startTime)+" milliseconds");
         System.out.println("Nodes Per Second: "+(int)(Perft.perftTotalMoveCounter/((endTime-startTime)/1000.0)));
-        javaF.repaint();
+//        javaF.repaint();
     }
 
     public static void newGame() {

@@ -48,22 +48,22 @@ public class BoardGenerator {
 
     public static void importFEN(String fenString) {
         //not chess960 compatible
-        UserInterface.WP = 0;
-        UserInterface.WN = 0;
-        UserInterface.WB = 0;
-        UserInterface.WR = 0;
-        UserInterface.WQ = 0;
-        UserInterface.WK = 0;
-        UserInterface.BP = 0;
-        UserInterface.BN = 0;
-        UserInterface.BB = 0;
-        UserInterface.BR = 0;
-        UserInterface.BQ = 0;
-        UserInterface.BK = 0;
-        UserInterface.CWK = false;
-        UserInterface.CWQ = false;
-        UserInterface.CBK = false;
-        UserInterface.CBQ = false;
+        Quetzal.WP = 0;
+        Quetzal.WN = 0;
+        Quetzal.WB = 0;
+        Quetzal.WR = 0;
+        Quetzal.WQ = 0;
+        Quetzal.WK = 0;
+        Quetzal.BP = 0;
+        Quetzal.BN = 0;
+        Quetzal.BB = 0;
+        Quetzal.BR = 0;
+        Quetzal.BQ = 0;
+        Quetzal.BK = 0;
+        Quetzal.CWK = false;
+        Quetzal.CWQ = false;
+        Quetzal.CBK = false;
+        Quetzal.CBQ = false;
 
         int charIndex = 0;
         int boardIndex = 0;
@@ -71,40 +71,40 @@ public class BoardGenerator {
         while (fenString.charAt(charIndex) != ' ') {
             switch (fenString.charAt(charIndex++)) {
                 case 'P':
-                    UserInterface.WP |= (1L << boardIndex++);
+                    Quetzal.WP |= (1L << boardIndex++);
                     break;
                 case 'p':
-                    UserInterface.BP |= (1L << boardIndex++);
+                    Quetzal.BP |= (1L << boardIndex++);
                     break;
                 case 'N':
-                    UserInterface.WN |= (1L << boardIndex++);
+                    Quetzal.WN |= (1L << boardIndex++);
                     break;
                 case 'n':
-                    UserInterface.BN |= (1L << boardIndex++);
+                    Quetzal.BN |= (1L << boardIndex++);
                     break;
                 case 'B':
-                    UserInterface.WB |= (1L << boardIndex++);
+                    Quetzal.WB |= (1L << boardIndex++);
                     break;
                 case 'b':
-                    UserInterface.BB |= (1L << boardIndex++);
+                    Quetzal.BB |= (1L << boardIndex++);
                     break;
                 case 'R':
-                    UserInterface.WR |= (1L << boardIndex++);
+                    Quetzal.WR |= (1L << boardIndex++);
                     break;
                 case 'r':
-                    UserInterface.BR |= (1L << boardIndex++);
+                    Quetzal.BR |= (1L << boardIndex++);
                     break;
                 case 'Q':
-                    UserInterface.WQ |= (1L << boardIndex++);
+                    Quetzal.WQ |= (1L << boardIndex++);
                     break;
                 case 'q':
-                    UserInterface.BQ |= (1L << boardIndex++);
+                    Quetzal.BQ |= (1L << boardIndex++);
                     break;
                 case 'K':
-                    UserInterface.WK |= (1L << boardIndex++);
+                    Quetzal.WK |= (1L << boardIndex++);
                     break;
                 case 'k':
-                    UserInterface.BK |= (1L << boardIndex++);
+                    Quetzal.BK |= (1L << boardIndex++);
                     break;
                 case '/':
                     break;
@@ -136,30 +136,30 @@ public class BoardGenerator {
                     break;
             }
         }
-        UserInterface.whiteToMove = (fenString.charAt(++charIndex) == 'w');
+        Quetzal.WhiteToMove = (fenString.charAt(++charIndex) == 'w');
         charIndex += 2;
         while (fenString.charAt(charIndex) != ' ') {
             switch (fenString.charAt(charIndex++)) {
                 case '-':
                     break;
                 case 'K':
-                    UserInterface.CWK = true;
+                    Quetzal.CWK = true;
                     break;
                 case 'Q':
-                    UserInterface.CWQ = true;
+                    Quetzal.CWQ = true;
                     break;
                 case 'k':
-                    UserInterface.CBK = true;
+                    Quetzal.CBK = true;
                     break;
                 case 'q':
-                    UserInterface.CBQ = true;
+                    Quetzal.CBQ = true;
                     break;
                 default:
                     break;
             }
         }
         if (fenString.charAt(++charIndex) != '-') {
-            UserInterface.EP = Moves.FileMasks8[fenString.charAt(charIndex++) - 'a'];
+            Quetzal.EP = Moves.FileMasks8[fenString.charAt(charIndex++) - 'a'];
         }
         //the rest of the fenString is not yet utilized
     }
@@ -190,18 +190,18 @@ public class BoardGenerator {
             }
         }
 //        drawArray(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
-        UserInterface.WP = WP;
-        UserInterface.WN = WN;
-        UserInterface.WB = WB;
-        UserInterface.WR = WR;
-        UserInterface.WQ = WQ;
-        UserInterface.WK = WK;
-        UserInterface.BP = BP;
-        UserInterface.BN = BN;
-        UserInterface.BB = BB;
-        UserInterface.BR = BR;
-        UserInterface.BQ = BQ;
-        UserInterface.BK = BK;
+        Quetzal.WP = WP;
+        Quetzal.WN = WN;
+        Quetzal.WB = WB;
+        Quetzal.WR = WR;
+        Quetzal.WQ = WQ;
+        Quetzal.WK = WK;
+        Quetzal.BP = BP;
+        Quetzal.BN = BN;
+        Quetzal.BB = BB;
+        Quetzal.BR = BR;
+        Quetzal.BQ = BQ;
+        Quetzal.BK = BK;
     }
 
     public static long stringToBitboard(String binary) {
