@@ -1,5 +1,7 @@
 package engine;
 
+import static engine.internal.BitBoardConstants.FileMasks8;
+
 /*
  * Colour = LIGHT/dark
  * Pawn = P/p
@@ -14,15 +16,16 @@ import java.util.Arrays;
 
 public class BoardGenerator {
     public static void initiateStandardBoard() {
-        //Long integers store 64 bits, which is enough to represent a piece on each
-        //square of the board. This is known as a bitboard which is a significantly
-        //more efficient way to represent the board than a 2D array of strings
-        //
-        // We need 12 bitboards to represent each type of piece
+        //12 bitboards to represent each type of piece (excluding En Passant squares)
         long WP = 0L, WN = 0L, WB = 0L, WR = 0L, WQ = 0L, WK = 0L, BP = 0L, BN = 0L, BB = 0L, BR = 0L, BQ = 0L, BK = 0L;
 
-        //For simplicity, we can initialize the board with a 2D array of strings
-        //Note: Fischer Random and FEN have unique initialization methods
+        //For simplicity and readability, we can initialize the board with a 2D array of strings
+        String[][] board = getBoard();
+
+        arrayToBitboards(board, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+    }
+
+    private static String[][] getBoard() {
         String[][] board;
 
         board = new String[][]{
@@ -35,8 +38,7 @@ public class BoardGenerator {
                 {"P", "P", "P", "P", "P", "P", "P", "P"},
                 {"R", "N", "B", "Q", "K", "B", "N", "R"}
         };
-
-        arrayToBitboards(board, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+        return board;
     }
 
     //TODO add chess 960 functionality
@@ -45,7 +47,7 @@ public class BoardGenerator {
     }
 
     public static void importFEN(String fenString) {
-        //not chess960 compatible
+        //Not chess960 compatible
         Quetzal.WP = 0;
         Quetzal.WN = 0;
         Quetzal.WB = 0;
@@ -104,8 +106,6 @@ public class BoardGenerator {
                 case 'k':
                     Quetzal.BK |= (1L << boardIndex++);
                     break;
-                case '/':
-                    break;
                 case '1':
                     boardIndex++;
                     break;
@@ -138,8 +138,6 @@ public class BoardGenerator {
         charIndex += 2;
         while (fenString.charAt(charIndex) != ' ') {
             switch (fenString.charAt(charIndex++)) {
-                case '-':
-                    break;
                 case 'K':
                     Quetzal.CWK = true;
                     break;
@@ -157,15 +155,15 @@ public class BoardGenerator {
             }
         }
         if (fenString.charAt(++charIndex) != '-') {
-            Quetzal.EP = Moves.FileMasks8[fenString.charAt(charIndex++) - 'a'];
+            Quetzal.EP = FileMasks8[fenString.charAt(charIndex++) - 'a'];
         }
         //the rest of the fenString is not yet utilized
+        //TODO add functionality for the rest of the fenString
     }
 
     public static void arrayToBitboards(String[][] board, long WP, long WN, long WB, long WR, long WQ,
                                         long WK, long BP, long BN, long BB, long BR, long BQ, long BK) {
-        //To avoid interpreting decimal numbers we can use a string of 64 0s and 1s
-        //to represent a binary number
+        //Binary string of 64 bits instead of long for easy manipulation
         String emptyBinary = "0".repeat(64);
 
         //Iterate through the 2D array of strings to initialize the bitboards
@@ -187,7 +185,8 @@ public class BoardGenerator {
                 case "k" -> BK += stringToBitboard(binary);
             }
         }
-//        drawArray(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+
+        //TODO add mutator method to set the bitboards
         Quetzal.WP = WP;
         Quetzal.WN = WN;
         Quetzal.WB = WB;
@@ -217,6 +216,9 @@ public class BoardGenerator {
 
     public static void drawArray(long WP, long WN, long WB, long WR, long WQ, long WK,
                                  long BP, long BN, long BB, long BR, long BQ, long BK) {
+        //debugging method to visualize the bitboards as a chess board
+        //TODO remove this method for release
+
         String[][] chessBoard = new String[8][8];
         for (int i = 0; i < 64; i++) {
             chessBoard[i / 8][i % 8] = " ";

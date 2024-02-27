@@ -2,18 +2,29 @@ package engine;
 
 import java.security.*;
 
+import static engine.internal.BitBoardConstants.FileMasks8;
+
 public class Zobrist {
     static long[][][] zArray = new long[2][6][64];
     static long[] zEnPassant = new long[8];
     static long[] zCastle = new long[4];
     static long zBlackMove;
 
-    public static long random64() { //TODO try to find a better random number generator
+    public static long random64() {
+        //SecureRandom is the best random number generator for this purpose as it
+        //provides the best distribution of random numbers
+        //
+        //Note: even distribution is important to prevent Zobrist Hash Collisions; there
+        //will always be a collision risk, but a good random number generator can minimize this to
+        //a negligible level
         SecureRandom random = new SecureRandom();
         return random.nextLong();
     }
 
     public static void zobristFillArray() {
+        //Fill the zobrist attributes with random 64 bit numbers
+        //
+        //Note: performance does not matter here, as this is only done once at the start of the program
         for (int color = 0; color < 2; color++) {
             for (int pieceType = 0; pieceType < 6; pieceType++) {
                 for (int square = 0; square < 64; square++) {
@@ -30,10 +41,14 @@ public class Zobrist {
         zBlackMove = random64();
     }
 
-    public static long getZobristHash(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN, long BB, long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ, boolean CBK, boolean CBQ, boolean WhiteToMove) {
+    public static long getZobristHash(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN, long BB,
+                                      long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ, boolean CBK,
+                                      boolean CBQ, boolean WhiteToMove) {
         long returnZKey = 0;
+
+        //Begin generating zobrist hash by (XOR)ing the random numbers for each piece on the board
         for (int square = 0; square < 64; square++) {
-            if (((WP >> square) & 1) == 1) { //TODO add a check for empty squares to avoid unnecessary checks
+            if (((WP >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][0][square];
             } else if (((BP >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][0][square];
@@ -59,8 +74,10 @@ public class Zobrist {
                 returnZKey ^= zArray[1][5][square];
             }
         }
+
+        //Continue by (XOR)ing the en passant, castling, and side to move random numbers
         for (int column = 0; column < 8; column++) {
-            if (EP == Moves.FileMasks8[column]) {
+            if (EP == FileMasks8[column]) {
                 returnZKey ^= zEnPassant[column];
             }
         }
@@ -74,10 +91,12 @@ public class Zobrist {
             returnZKey ^= zCastle[3];
         if (!WhiteToMove)
             returnZKey ^= zBlackMove;
+
         return returnZKey;
     }
 
     public static void testDistribution() {
+        //Debug method
         int sampleSize = 2000;
         int sampleSeconds = 10;
         long startTime = System.currentTimeMillis();

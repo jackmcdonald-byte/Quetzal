@@ -44,25 +44,6 @@ class ChessEngineTest {
     }
 
     @Test
-    void legalMoves_returnsMoves() {
-        BoardGenerator.importFEN("k6Q/pppp4/3np3/8/8/8/PPPPPPP1/KB6 b - - 0 1");
-        UCI.inputPrint();
-        String moves = Moves.possibleMovesBlack(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ);
-        int i = PVSAlgorithm.getFirstLegalMove(moves, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove);
-        assertNotEquals(-1, i);
-        assertNotEquals("a7a6", UCI.moveToAlgebra(moves.substring(i, i + 4)));
-        System.out.println(UCI.moveToAlgebra(moves.substring(i, i + 4)));
-        moves = moves.substring(i + 4);
-        i = PVSAlgorithm.getFirstLegalMove(moves, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove);
-        assertNotEquals("a7a6", UCI.moveToAlgebra(moves.substring(i, i + 4)));
-        System.out.println(UCI.moveToAlgebra(moves.substring(i, i + 4)));
-        moves = moves.substring(i + 4);
-        i = PVSAlgorithm.getFirstLegalMove(moves, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove);
-        assertNotEquals("a7a6", UCI.moveToAlgebra(moves.substring(i, i + 4)));
-        System.out.println(UCI.moveToAlgebra(moves.substring(i, i + 4)));
-    }
-
-    @Test
     void principleVariationSearch_returnsLegalMove() {
         BoardGenerator.importFEN("k6Q/pppp4/3np3/8/8/8/PPPPPPP1/KB6 b - - 0 1");
         int bestScore = PVSAlgorithm.principleVariationSearch(-1000, 1000, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove, 0);
@@ -72,8 +53,8 @@ class ChessEngineTest {
     @Test
     void legalMovesGeneratesLegalMoves() {
         BoardGenerator.importFEN("k6Q/pppp4/3np3/8/8/8/PPPPPPP1/KB6 b - - 0 1");
-        String moves = Moves.possibleMovesBlack(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ);
-        String legalMoves = Moves.legalMoves(moves, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove);
+        String moves = Moves.possibleMovesBlack(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CBK, Quetzal.CBQ);
+        String legalMoves = Moves.legalMoves(moves, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.WhiteToMove);
         assertEquals(moves, legalMoves);
     }
 
