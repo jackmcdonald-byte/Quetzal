@@ -51,6 +51,7 @@ public class UCI {
         if (input.contains("startpos ")) {
             input = input.substring(9);
             BoardGenerator.importFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+            Quetzal.WhiteToMove = true;
         } else if (input.contains("fen")) {
             input = input.substring(4);
             BoardGenerator.importFEN(input);
@@ -109,6 +110,7 @@ public class UCI {
     }
 
     public static void algebraToMove(String input, String moves) {
+        Quetzal.WhiteToMove = !Quetzal.WhiteToMove;
         int start = 0, end = 0;
         int from = (input.charAt(0) - 'a') + (8 * ('8' - input.charAt(1)));
         int to = (input.charAt(2) - 'a') + (8 * ('8' - input.charAt(3)));
@@ -159,6 +161,8 @@ public class UCI {
                     char move4 = moves.charAt(i + 3);
 
                     Quetzal.EP = Moves.makeMoveEP(Quetzal.WP | Quetzal.BP, moves.substring(i, i + 4));
+                    Quetzal.WR=Moves.makeMoveCastle(Quetzal.WR, Quetzal.WK|Quetzal.BK, moves.substring(i,i+4), 'R');
+                    Quetzal.BR=Moves.makeMoveCastle(Quetzal.BR, Quetzal.WK|Quetzal.BK, moves.substring(i,i+4), 'r');
                     Quetzal.WP = Moves.makeMove(Quetzal.WP, move1, move2, move3, move4, 'P');
                     Quetzal.WN = Moves.makeMove(Quetzal.WN, move1, move2, move3, move4, 'N');
                     Quetzal.WB = Moves.makeMove(Quetzal.WB, move1, move2, move3, move4, 'B');
@@ -171,7 +175,6 @@ public class UCI {
                     Quetzal.BR = Moves.makeMove(Quetzal.BR, move1, move2, move3, move4, 'r');
                     Quetzal.BQ = Moves.makeMove(Quetzal.BQ, move1, move2, move3, move4, 'q');
                     Quetzal.BK = Moves.makeMove(Quetzal.BK, move1, move2, move3, move4, 'k');
-                    Quetzal.WhiteToMove = !Quetzal.WhiteToMove;
                     break;
                 }
             }

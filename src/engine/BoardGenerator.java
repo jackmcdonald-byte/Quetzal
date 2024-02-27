@@ -44,8 +44,6 @@ public class BoardGenerator {
         //
     }
 
-    //TODO add FEN functionality
-
     public static void importFEN(String fenString) {
         //not chess960 compatible
         Quetzal.WP = 0;

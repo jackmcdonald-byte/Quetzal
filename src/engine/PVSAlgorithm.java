@@ -1,13 +1,17 @@
 package engine;
 
+import NNUE.nnue_probe.nnue.NNUEProbeUtils;
+
 public class PVSAlgorithm {
     public static String[] bestMove = new String[20];
     public static int nullWindowSearch(int beta, long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN, long BB, long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ, boolean CBK, boolean CBQ, boolean WhiteToMove, int depth) {
         int score = Integer.MIN_VALUE;
+        NNUEProbeUtils.Input input = new NNUEProbeUtils.Input(); //try passing inputs if problematic
+        NNUEProbeUtils.fillInput(input, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
         //alpha == beta - 1
         //this is either a cut- or all-node
         if (depth == Quetzal.searchDepth) {
-            score = Evaluation.evaluate(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, WhiteToMove);
+            score = Evaluation.evaluate(input);
             return score;
         }
 
@@ -93,8 +97,10 @@ public class PVSAlgorithm {
     public static int principleVariationSearch(int alpha, int beta, long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN, long BB, long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ, boolean CBK, boolean CBQ, boolean WhiteToMove, int depth) {
         int bestScore;
         int bestMoveIndex = -1;
+        NNUEProbeUtils.Input input = new NNUEProbeUtils.Input();
+        NNUEProbeUtils.fillInput(input, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
         if (depth == Quetzal.searchDepth) {
-            bestScore = Evaluation.evaluate(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, WhiteToMove);
+            bestScore = Evaluation.evaluate(input);
             return bestScore;
         }
 
@@ -145,7 +151,7 @@ public class PVSAlgorithm {
         bestScore = -principleVariationSearch(-beta, -alpha, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
         Quetzal.moveCounter++;
 
-        if (Math.abs(bestScore) == Quetzal.MATE_SCORE) {
+        if (Math.abs(bestScore) > Quetzal.MATE_SCORE) {
             return bestScore;
         }
         if (bestScore > alpha) {
@@ -157,8 +163,8 @@ public class PVSAlgorithm {
                 return bestScore;
             }
             alpha = bestScore;
+            int l = 0; //for debugging
         }
-
         bestMoveIndex = 0;
         for (int i = 4; i < moves.length(); i += 4) {
             int score;
@@ -208,7 +214,7 @@ public class PVSAlgorithm {
             score = -nullWindowSearch(-alpha, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
             if ((score > alpha) && (score < beta)) {
                 //research with window [alpha;beta]
-                score = -principleVariationSearch(-beta, -alpha, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CWK, CWQ, CBK, CBQ, !WhiteToMove, depth + 1);
+                score = -principleVariationSearch(-beta, -alpha, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
                 if (score > alpha) {
                     bestMoveIndex = i;
                     bestMove[depth] = moves.substring(i, i + 4);

@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Objects;
 import javax.swing.*;
+import NNUE.nnue_probe.nnue.NNUEJNIBridge;
 
 //temporary class until Universal Chess Interface is implemented
 
@@ -27,6 +28,7 @@ public class UserInterface extends JPanel {
     }
 
     public static void main(String[] args) {
+        NNUEJNIBridge.setup();
         UCI.uciCommunication();
 //        javaF.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //        javaF.add(javaUI);
@@ -100,7 +102,6 @@ public class UserInterface extends JPanel {
     }
 
     public void drawPieces(Graphics g) {
-        //TODO swap K/Q if humanIsWhite = 0
         Image chessPieceImage;
         chessPieceImage = new ImageIcon(Objects.requireNonNull(UserInterface.class.getResource("ChessPiecesArray.png"))).getImage();
         for (int i = 0; i < 64; i++) {

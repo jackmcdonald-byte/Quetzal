@@ -2,7 +2,6 @@ package engine;
 
 import java.util.Arrays;
 
-//TODO consistent documentation
 public class Moves {
     public static final long FILE_A = 72340172838076673L;
     public static final long FILE_H = -9187201950435737472L;
@@ -134,8 +133,6 @@ public class Moves {
                 board &= ~(1L << start);
                 board |= (1L << end);
             }
-        } else {
-            System.out.print("ERROR: Invalid move type"); //TODO remove after debugging
         }
 
         return board;
@@ -217,7 +214,6 @@ public class Moves {
     }
 
     //TODO return later and attempt to optimize by trying different loops
-    //TODO fix board generation to avoid rewriting this i.e, only flip graphical representation
     public static String possibleWP(long WP, long BP, long EP) {
         StringBuilder list = new StringBuilder();
 

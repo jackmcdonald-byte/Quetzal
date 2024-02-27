@@ -1,5 +1,7 @@
 package engine;
 
+import NNUE.nnue_probe.nnue.NNUEJNIBridge;
+
 public class Quetzal {
     public static long WP = 0L, WN = 0L, WB = 0L, WR = 0L, WQ = 0L, WK = 0L, BP = 0L, BN = 0L, BB = 0L, BR = 0L, BQ = 0L, BK = 0L, EP = 0L;
     public static boolean CWK = true, CWQ = true, CBK = true, CBQ = true, WhiteToMove = true;//true=castle is possible
@@ -13,20 +15,8 @@ public class Quetzal {
     public static void main(String[] args) {
 //        Zobrist.random64();
 //        Zobrist.testDistribution();
+        NNUEJNIBridge.setup();
         Zobrist.zobristFillArray();
-        BoardGenerator.importFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        UCI.inputPrint();
-        UCI.inputPrint();
-        System.out.println(Zobrist.getZobristHash(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CWK, CWQ, CBK, CBQ, WhiteToMove));
-        UCI.inputPrint();
-        BoardGenerator.importFEN("rnbqkbnr/ppp1pppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        UCI.inputPrint();
-        long startTime = System.currentTimeMillis();
-        System.out.println(PVSAlgorithm.principleVariationSearch(-1000,1000,WP,WN,WB,WR,WQ,WK,BP,BN,BB,BR,BQ,BK,EP,CWK,CWQ,CBK,CBQ, !WhiteToMove,7));
-        System.out.println(UCI.moveToAlgebra(PVSAlgorithm.bestMove[0]));
-
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
         UCI.uciCommunication();
     }
 }
