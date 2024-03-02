@@ -13,7 +13,7 @@ public class Quetzal {
 //            UniversalBB = 0L, UniversalBR = 0L, UniversalBQ = 0L, UniversalBK = 0L,
 //            UniversalEP = 0L;
     static int searchDepth = 5, moveCounter; //Use moveCounter to test efficiency
-    static int MATE_SCORE = 5000, NULL_INT = Integer.MIN_VALUE;
+    public static int MATE_SCORE = 32000, MAX_SEARCH_DEPTH = 200, NULL_INT = Integer.MIN_VALUE;
 
     public static void main(String[] args) {
         NNUEJNIBridge.setup();

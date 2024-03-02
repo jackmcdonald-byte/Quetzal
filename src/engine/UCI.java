@@ -86,7 +86,7 @@ public class UCI {
 
     public static void inputGo() {
         //Search for best move
-        PVSAlgorithm.principleVariationSearch(-1000, 1000, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR,
+        PVSAlgorithm.principleVariationSearch(-10000, 10000, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR,
                 Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK,
                 Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove, 0);
         System.out.println("bestmove " + moveToAlgebra(PVSAlgorithm.bestMove[0]));

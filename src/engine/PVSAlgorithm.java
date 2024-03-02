@@ -24,8 +24,15 @@ public class PVSAlgorithm {
 
         //Check for checkmate or stalemate
         //TODO add 3 fold repetition and stalemate recognition
+        //TODO fix checkmate bug
         if (moves.isEmpty()) {
-            return WhiteToMove ? Quetzal.MATE_SCORE : -Quetzal.MATE_SCORE;
+            if ((WK & Moves.unsafeForWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && WhiteToMove) {
+                return -(Quetzal.MATE_SCORE - depth);
+            } else if ((BK & Moves.unsafeForBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && !WhiteToMove) {
+                return Quetzal.MATE_SCORE - depth;
+            } else {
+                return 0;
+            }
         }
 
         for (int i = 0; i < moves.length(); i += 4) {
@@ -106,10 +113,15 @@ public class PVSAlgorithm {
                 EP, CWK, CWQ, CBK, CBQ, WhiteToMove);
 
         //Check for checkmate or stalemate
-        //TODO add 3 fold repetition and stalemate recognition
+        //TODO add 3 fold repetition recognition
         if (moves.isEmpty()) {
-            bestMove[depth] = "checkmate";
-            return WhiteToMove ? Quetzal.MATE_SCORE : -Quetzal.MATE_SCORE;
+            if ((WK & Moves.unsafeForWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && WhiteToMove) {
+                return -(Quetzal.MATE_SCORE - depth);
+            } else if ((BK & Moves.unsafeForBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && !WhiteToMove) {
+                return Quetzal.MATE_SCORE - depth;
+            } else {
+                return 0;
+            }
         }
 
         bestMove[depth] = moves.substring(0, 4);
@@ -161,9 +173,6 @@ public class PVSAlgorithm {
                 BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
         Quetzal.moveCounter++;
 
-        if (Math.abs(bestScore) > Quetzal.MATE_SCORE) {
-            return bestScore;
-        }
         if (bestScore > alpha) {
             if (bestScore >= beta) {
                 //This is a refutation move
@@ -242,8 +251,8 @@ public class PVSAlgorithm {
                     return score;
                 }
                 bestScore = score;
-                //TODO tweak mate recognition to work with NNUE
-                if (Math.abs(bestScore) == Quetzal.MATE_SCORE) {
+                //TODO delete after optimization
+                if (Math.abs(bestScore) >= Quetzal.MATE_SCORE - Quetzal.MAX_SEARCH_DEPTH) {
                     return bestScore;
                 }
             }
