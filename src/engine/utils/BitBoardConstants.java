@@ -1,4 +1,4 @@
-package engine.internal;
+package engine.utils;
 
 public class BitBoardConstants {
     public static final long FILE_A = 72340172838076673L;
@@ -9,8 +9,8 @@ public class BitBoardConstants {
     public static final long RANK_4 = 1095216660480L;
     public static final long RANK_5 = 4278190080L;
     public static final long RANK_8 = 255L;
-    public static final long CENTRE = 103481868288L;
-    public static final long EXTENDED_CENTRE = 66229406269440L;
+    public static final long CENTRE = 103481868288L; //2x2 square
+    public static final long EXTENDED_CENTRE = 66229406269440L; //4x4 square
     public static final long KING_SIDE = -1085102592571150096L;
     public static final long QUEEN_SIDE = 1085102592571150095L;
     public static final long KING_SPAN = 460039L; //King's span on g2

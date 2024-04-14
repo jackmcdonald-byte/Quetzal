@@ -1,8 +1,10 @@
 package engine;
 
+import engine.datastructs.ChessBoard;
+
 import java.util.Arrays;
 
-import static engine.internal.BitBoardConstants.*;
+import static engine.utils.BitBoardConstants.*;
 
 public class Moves {
     static long WHITE_PIECES; //Doesn't represent white king
@@ -12,21 +14,32 @@ public class Moves {
     static long OCCUPIED;
     static long EMPTY;
 
-    public static String generateMoves(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN,
-                                       long BB, long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ,
-                                       boolean CBK, boolean CBQ, boolean WhiteToMove) {
+    /**
+     * Generates all legal moves for the current board
+     *
+     * @param board Current board
+     * @return String of all legal moves
+     */
+    public static String generateMoves(ChessBoard board) {
         String moves;
-        if (WhiteToMove) {
-            moves = possibleMovesWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CWK, CWQ);
+        if (board.getWhiteToMove()) {
+            moves = possibleMovesWhite(board);
         } else {
-            moves = possibleMovesBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EP, CBK, CBQ);
+            moves = possibleMovesBlack(board);
         }
 
-        return legalMoves(moves, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, WhiteToMove);
+        return legalMoves(moves, board);
     }
 
     //General formula for moves along a mask = (o&m - 2s) ^ ((o&m)' - 2s')'
     //where o is OCCUPIED, m is mask, s is slider, and ' is the reverse operation
+
+    /**
+     * Calculates all possible horizontal and vertical moves for a given slider
+     *
+     * @param slider Slider piece
+     * @return Bitboard of all possible moves
+     */
     public static long horizontalAndVerticalMoves(int slider) {
         long binarySlider = 1L << slider;
 
@@ -41,6 +54,12 @@ public class Moves {
                 | (possibilitiesVertical & FileMasks8[slider % 8]);
     }
 
+    /**
+     * Calculates all possible diagonal and anti-diagonal moves for a given slider
+     *
+     * @param slider Slider piece
+     * @return Bitboard of all possible moves
+     */
     public static long diagonalAndAntiDiagonalMoves(int slider) {
         long binarySlider = 1L << slider;
 
@@ -58,6 +77,17 @@ public class Moves {
                 | (possibilitiesAntiDiagonal & AntiDiagonalMasks8[(slider / 8) + 7 - (slider % 8)]);
     }
 
+    /**
+     * Returns new board after making a move
+     *
+     * @param board Current board
+     * @param move1 Start x coordinate
+     * @param move2 End x coordinate
+     * @param move3 Start y coordinate
+     * @param move4 End y coordinate
+     * @param type  Type of move
+     * @return New board
+     */
     public static long makeMove(long board, char move1, char move2, char move3, char move4, char type) {
         if (Character.isDigit(move4)) { //'Regular' move
             int start = ((move1 - '0') * 8) + (move2 - '0');
@@ -106,6 +136,15 @@ public class Moves {
         return board;
     }
 
+    /**
+     * Returns rook bitboard after castling
+     *
+     * @param rookBoard Start rook bitboard
+     * @param kingBoard Start king bitboard
+     * @param move      Move made
+     * @param type      Type of move
+     * @return New rook bitboard
+     */
     public static long makeMoveCastle(long rookBoard, long kingBoard, String move, char type) {
         int start = (Character.getNumericValue(move.charAt(0)) * 8) + (Character.getNumericValue(move.charAt(1)));
         //Check if king castled and updated rook board accordingly (kingBoard is updated in makeMove method)
@@ -138,6 +177,13 @@ public class Moves {
         return rookBoard;
     }
 
+    /**
+     * Returns EP bitboard after making a move
+     *
+     * @param board EP bitboard
+     * @param move  Move made
+     * @return New EP bitboard
+     */
     public static long makeMoveEP(long board, String move) {
         //Masks EP file if double pawn push
         if (Character.isDigit(move.charAt(3))) {
@@ -149,38 +195,56 @@ public class Moves {
         return 0;
     }
 
-    public static String possibleMovesWhite(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN,
-                                            long BB, long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ) {
-        AVAILABLE_SQUARES_WHITE = ~(WP | WN | WB | WR | WQ | WK | BK); //Added BK to avoid illegal capture
-        BLACK_PIECES = BP | BN | BB | BR | BQ; //Omitted BK to avoid illegal capture
-        EMPTY = ~(WP | WN | WB | WR | WQ | WK | BP | BN | BB | BR | BQ | BK);
+    /**
+     * Returns string of all possible white moves (not necessarily legal)
+     *
+     * @param board Current board
+     * @return String of all possible white moves
+     */
+    public static String possibleMovesWhite(ChessBoard board) {
+        AVAILABLE_SQUARES_WHITE = ~(board.getWP() | board.getWN() | board.getWB() | board.getWR() | board.getWQ() | board.getWK() | board.getBK()); //Added BK to avoid illegal capture
+        BLACK_PIECES = board.getBP() | board.getBN() | board.getBB() | board.getBR() | board.getBQ(); //Omitted BK to avoid illegal capture
+        EMPTY = ~(board.getWP() | board.getWN() | board.getWB() | board.getWR() | board.getWQ() | board.getWK() | board.getBP() | board.getBN() | board.getBB() | board.getBR() | board.getBQ() | board.getBK());
         OCCUPIED = ~(EMPTY);
 
-        return possibleWP(WP, BP, EP)
-                + possibleN(AVAILABLE_SQUARES_WHITE, WN)
-                + possibleB(AVAILABLE_SQUARES_WHITE, WB)
-                + possibleR(AVAILABLE_SQUARES_WHITE, WR)
-                + possibleQ(AVAILABLE_SQUARES_WHITE, WQ)
-                + possibleK(AVAILABLE_SQUARES_WHITE, WK)
-                + possibleCW(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, CWK, CWQ);
+        return possibleWP(board.getWP(), board.getBP(), board.getEP())
+                + possibleN(AVAILABLE_SQUARES_WHITE, board.getWN())
+                + possibleB(AVAILABLE_SQUARES_WHITE, board.getWB())
+                + possibleR(AVAILABLE_SQUARES_WHITE, board.getWR())
+                + possibleQ(AVAILABLE_SQUARES_WHITE, board.getWQ())
+                + possibleK(AVAILABLE_SQUARES_WHITE, board.getWK())
+                + possibleCW(board);
     }
 
-    public static String possibleMovesBlack(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN,
-                                            long BB, long BR, long BQ, long BK, long EP, boolean CBK, boolean CBQ) {
-        AVAILABLE_SQUARES_BLACK = ~(BP | BN | BB | BR | BQ | BK | WK); //Added WK to avoid illegal capture
-        WHITE_PIECES = WP | WN | WB | WR | WQ; //Omitted WK to avoid illegal capture
-        EMPTY = ~(WP | WN | WB | WR | WQ | WK | BP | BN | BB | BR | BQ | BK);
+    /**
+     * Returns string of all possible black moves (not necessarily legal)
+     *
+     * @param board Current board
+     * @return String of all possible black moves
+     */
+    public static String possibleMovesBlack(ChessBoard board) {
+        AVAILABLE_SQUARES_BLACK = ~(board.getBP() | board.getBN() | board.getBB() | board.getBR() | board.getBQ() | board.getBK() | board.getWK()); //Added WK to avoid illegal capture
+        WHITE_PIECES = board.getWP() | board.getWN() | board.getWB() | board.getWR() | board.getWQ(); //Omitted WK to avoid illegal capture
+        EMPTY = ~(board.getWP() | board.getWN() | board.getWB() | board.getWR() | board.getWQ() | board.getWK() | board.getBP() | board.getBN() | board.getBB() | board.getBR() | board.getBQ() | board.getBK());
         OCCUPIED = ~(EMPTY);
 
-        return possibleBP(BP, WP, EP)
-                + possibleN(AVAILABLE_SQUARES_BLACK, BN)
-                + possibleB(AVAILABLE_SQUARES_BLACK, BB)
-                + possibleR(AVAILABLE_SQUARES_BLACK, BR)
-                + possibleQ(AVAILABLE_SQUARES_BLACK, BQ)
-                + possibleK(AVAILABLE_SQUARES_BLACK, BK)
-                + possibleCB(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, CBK, CBQ);
+        return possibleBP(board.getBP(), board.getWP(), board.getEP())
+                + possibleN(AVAILABLE_SQUARES_BLACK, board.getBN())
+                + possibleB(AVAILABLE_SQUARES_BLACK, board.getBB())
+                + possibleR(AVAILABLE_SQUARES_BLACK, board.getBR())
+                + possibleQ(AVAILABLE_SQUARES_BLACK, board.getBQ())
+                + possibleK(AVAILABLE_SQUARES_BLACK, board.getBK())
+                + possibleCB(board);
     }
 
+    /**
+     * Returns string of all possible white pawn moves
+     *
+     * @param WP White pawn bitboard
+     * @param BP Black pawn bitboard
+     * @param EP EP bitboard
+     * @return String of all possible white pawn moves
+     */
     public static String possibleWP(long WP, long BP, long EP) {
         StringBuilder list = new StringBuilder();
 
@@ -265,6 +329,14 @@ public class Moves {
         return list.toString();
     }
 
+    /**
+     * Returns string of all possible black pawn moves
+     *
+     * @param BP Black pawn bitboard
+     * @param WP White pawn bitboard
+     * @param EP EP bitboard
+     * @return String of all possible black pawn moves
+     */
     public static String possibleBP(long BP, long WP, long EP) {
         StringBuilder list = new StringBuilder();
 
@@ -349,6 +421,13 @@ public class Moves {
         return list.toString();
     }
 
+    /**
+     * Returns string of all possible knight moves
+     *
+     * @param AVAILABLE_SQUARES Available squares for a given color
+     * @param N                 Knight bitboard
+     * @return String of all possible knight moves
+     */
     public static String possibleN(long AVAILABLE_SQUARES, long N) {
         StringBuilder list = new StringBuilder();
         long i = N & -N;
@@ -386,6 +465,13 @@ public class Moves {
         return list.toString();
     }
 
+    /**
+     * Returns string of all possible bishop moves
+     *
+     * @param AVAILABLE_SQUARES Available squares for a given color
+     * @param B                 Bishop bitboard
+     * @return String of all possible bishop moves
+     */
     public static String possibleB(long AVAILABLE_SQUARES, long B) {
         StringBuilder list = new StringBuilder();
         long i = B & -B;
@@ -410,6 +496,13 @@ public class Moves {
         return list.toString();
     }
 
+    /**
+     * Returns string of all possible rook moves
+     *
+     * @param AVAILABLE_SQUARES Available squares for a given color
+     * @param R                 Rook bitboard
+     * @return String of all possible rook moves
+     */
     public static String possibleR(long AVAILABLE_SQUARES, long R) {
         StringBuilder list = new StringBuilder();
         long i = R & -R;
@@ -434,6 +527,13 @@ public class Moves {
         return list.toString();
     }
 
+    /**
+     * Returns string of all possible queen moves
+     *
+     * @param AVAILABLE_SQUARES Available squares for a given color
+     * @param Q                 Queen bitboard
+     * @return String of all possible queen moves
+     */
     public static String possibleQ(long AVAILABLE_SQUARES, long Q) {
         StringBuilder list = new StringBuilder();
         long i = Q & -Q;
@@ -459,6 +559,13 @@ public class Moves {
         return list.toString();
     }
 
+    /**
+     * Returns string of all possible king moves
+     *
+     * @param AVAILABLE_SQUARES Available squares for a given color
+     * @param K                 King bitboard
+     * @return String of all possible king moves
+     */
     public static String possibleK(long AVAILABLE_SQUARES, long K) {
         StringBuilder list = new StringBuilder();
         long possibility;
@@ -490,19 +597,24 @@ public class Moves {
         return list.toString();
     }
 
-    public static String possibleCW(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN,
-                                    long BB, long BR, long BQ, long BK, boolean CWK, boolean CWQ) {
+    /**
+     * Returns string of all possible white castling moves
+     *
+     * @param board Current board
+     * @return String of all possible castling moves
+     */
+    public static String possibleCW(ChessBoard board) {
         String list = "";
-        long UNSAFE = unsafeForWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+        long UNSAFE = unsafeForWhite(board);
 
         //Check if castling path is clear and king is not in check
-        if ((UNSAFE & WK) == 0) {
-            if (CWK && (((1L << CASTLE_ROOKS[0]) & WR) != 0)) {
+        if ((UNSAFE & board.getWK()) == 0) {
+            if (board.getCWK() && (((1L << CASTLE_ROOKS[0]) & board.getWR()) != 0)) {
                 if (((OCCUPIED | UNSAFE) & ((1L << 61) | (1L << 62))) == 0) {
                     list += "7476";
                 }
             }
-            if (CWQ && (((1L << CASTLE_ROOKS[1]) & WR) != 0)) {
+            if (board.getCWQ() && (((1L << CASTLE_ROOKS[1]) & board.getWR()) != 0)) {
                 if (((OCCUPIED | (UNSAFE & ~(1L << 57))) & ((1L << 57) | (1L << 58) | (1L << 59))) == 0) {
                     list += "7472";
                 }
@@ -511,19 +623,24 @@ public class Moves {
         return list;
     }
 
-    public static String possibleCB(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN,
-                                    long BB, long BR, long BQ, long BK, boolean CBK, boolean CBQ) {
+    /**
+     * Returns string of all possible black castling moves
+     *
+     * @param board Current board
+     * @return String of all possible castling moves
+     */
+    public static String possibleCB(ChessBoard board) {
         String list = "";
-        long UNSAFE = unsafeForBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+        long UNSAFE = unsafeForBlack(board);
 
         //Check if castling path is clear and king is not in check
-        if ((UNSAFE & BK) == 0) {
-            if (CBK && (((1L << CASTLE_ROOKS[2]) & BR) != 0)) {
+        if ((UNSAFE & board.getBK()) == 0) {
+            if (board.getCBK() && (((1L << CASTLE_ROOKS[2]) & board.getBR()) != 0)) {
                 if (((OCCUPIED | UNSAFE) & ((1L << 5) | (1L << 6))) == 0) {
                     list += "0406";
                 }
             }
-            if (CBQ && (((1L << CASTLE_ROOKS[3]) & BR) != 0)) {
+            if (board.getCBQ() && (((1L << CASTLE_ROOKS[3]) & board.getBR()) != 0)) {
                 if (((OCCUPIED | (UNSAFE & ~(1L << 1))) & ((1L << 1) | (1L << 2) | (1L << 3))) == 0) {
                     list += "0402";
                 }
@@ -532,8 +649,26 @@ public class Moves {
         return list;
     }
 
-    public static long unsafeForBlack(long WP, long WN, long WB, long WR, long WQ, long WK,
-                                      long BP, long BN, long BB, long BR, long BQ, long BK) {
+    /**
+     * Returns a bitboard of all unsafe squares for a black
+     *
+     * @param board Current board
+     * @return Bitboard of all unsafe squares for black
+     */
+    public static long unsafeForBlack(ChessBoard board) {
+        long WP = board.getWP();
+        long WN = board.getWN();
+        long WB = board.getWB();
+        long WR = board.getWR();
+        long WQ = board.getWQ();
+        long WK = board.getWK();
+        long BP = board.getBP();
+        long BN = board.getBN();
+        long BB = board.getBB();
+        long BR = board.getBR();
+        long BQ = board.getBQ();
+        long BK = board.getBK();
+
         long unsafe;
         OCCUPIED = WP | WN | WB | WR | WQ | WK | BP | BN | BB | BR | BQ | BK;
         long possibility;
@@ -600,8 +735,26 @@ public class Moves {
         return unsafe;
     }
 
-    public static long unsafeForWhite(long WP, long WN, long WB, long WR, long WQ, long WK,
-                                      long BP, long BN, long BB, long BR, long BQ, long BK) {
+    /**
+     * Returns a bitboard of all unsafe squares for a white
+     *
+     * @param board Current board
+     * @return Bitboard of all unsafe squares for white
+     */
+    public static long unsafeForWhite(ChessBoard board) {
+        long WP = board.getWP();
+        long WN = board.getWN();
+        long WB = board.getWB();
+        long WR = board.getWR();
+        long WQ = board.getWQ();
+        long WK = board.getWK();
+        long BP = board.getBP();
+        long BN = board.getBN();
+        long BB = board.getBB();
+        long BR = board.getBR();
+        long BQ = board.getBQ();
+        long BK = board.getBK();
+
         long unsafe;
         OCCUPIED = WP | WN | WB | WR | WQ | WK | BP | BN | BB | BR | BQ | BK;
         long possibility;
@@ -668,43 +821,34 @@ public class Moves {
         return unsafe;
     }
 
-    public static String legalMoves(String moves, long WP, long WN, long WB, long WR, long WQ, long WK,
-                                    long BP, long BN, long BB, long BR, long BQ, long BK, boolean WhiteToMove) {
+    /**
+     * Returns a String of all legal moves for a given board
+     *
+     * @param moves List of possible moves
+     * @param board Current board
+     * @return String of all legal moves
+     */
+    public static String legalMoves(String moves, ChessBoard board) {
+        //TODO remove board creation
         StringBuilder legalMoves = new StringBuilder();
 
         //Primitives instead of strings for performance
         for (int i = 0; i < moves.length(); i += 4) {
-            char move1 = moves.charAt(i);
-            char move2 = moves.charAt(i + 1);
-            char move3 = moves.charAt(i + 2);
-            char move4 = moves.charAt(i + 3);
-
-            long WPt = Moves.makeMove(WP, move1, move2, move3, move4, 'P'),
-                    WNt = Moves.makeMove(WN, move1, move2, move3, move4, 'N'),
-                    WBt = Moves.makeMove(WB, move1, move2, move3, move4, 'B'),
-                    WRt = Moves.makeMove(WR, move1, move2, move3, move4, 'R'),
-                    WQt = Moves.makeMove(WQ, move1, move2, move3, move4, 'Q'),
-                    WKt = Moves.makeMove(WK, move1, move2, move3, move4, 'K'),
-                    BPt = Moves.makeMove(BP, move1, move2, move3, move4, 'p'),
-                    BNt = Moves.makeMove(BN, move1, move2, move3, move4, 'n'),
-                    BBt = Moves.makeMove(BB, move1, move2, move3, move4, 'b'),
-                    BRt = Moves.makeMove(BR, move1, move2, move3, move4, 'r'),
-                    BQt = Moves.makeMove(BQ, move1, move2, move3, move4, 'q'),
-                    BKt = Moves.makeMove(BK, move1, move2, move3, move4, 'k');
-            WRt = Moves.makeMoveCastle(WRt, WK | BK,
-                    String.valueOf(new char[]{move1, move2, move3, move4}), 'R');
-            BRt = Moves.makeMoveCastle(BRt, WK | BK,
-                    String.valueOf(new char[]{move1, move2, move3, move4}), 'r');
-            if (((WKt & Moves.unsafeForWhite(WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt)) == 0
-                    && WhiteToMove)
-                    || ((BKt & Moves.unsafeForBlack(WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt)) == 0
-                    && !WhiteToMove)) {
-                legalMoves.append(move1).append(move2).append(move3).append(move4);
+            board.makeMove(moves, i, true);
+            if (((board.getWK() & Moves.unsafeForWhite(board)) == 0 && !board.getWhiteToMove())
+                    || ((board.getBK() & Moves.unsafeForBlack(board)) == 0 && board.getWhiteToMove())) {
+                legalMoves.append(moves, i, i + 4);
             }
+            board.undoMove(true);
         }
         return legalMoves.toString();
     }
 
+    /**
+     * Prints bitboard to console (for debugging)
+     *
+     * @param bitBoard Bitboard to print
+     */
     public static void drawBitboard(long bitBoard) {
         //Debug method to print bitboards
         //TODO remove later

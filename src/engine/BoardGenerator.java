@@ -1,6 +1,8 @@
 package engine;
 
-import static engine.internal.BitBoardConstants.FileMasks8;
+import engine.datastructs.ChessBoard;
+
+import static engine.utils.BitBoardConstants.FileMasks8;
 
 /*
  * Colour = LIGHT/dark
@@ -15,6 +17,9 @@ import static engine.internal.BitBoardConstants.FileMasks8;
 import java.util.Arrays;
 
 public class BoardGenerator {
+    /**
+     * Initializes the board to the standard starting position
+     */
     public static void initiateStandardBoard() {
         //12 bitboards to represent each type of piece (excluding En Passant squares)
         long WP = 0L, WN = 0L, WB = 0L, WR = 0L, WQ = 0L, WK = 0L, BP = 0L, BN = 0L, BB = 0L, BR = 0L, BQ = 0L, BK = 0L;
@@ -25,6 +30,9 @@ public class BoardGenerator {
         arrayToBitboards(board, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
     }
 
+    /**
+     * Returns a 2D array of strings representing the standard starting position
+     */
     private static String[][] getBoard() {
         String[][] board;
 
@@ -43,9 +51,14 @@ public class BoardGenerator {
 
     //TODO add chess 960 functionality
     public static void initiateFischerRandom() {
-        //
+        return;
     }
 
+    /**
+     * Imports a FEN string to initialize the board
+     *
+     * @param fenString FEN string to import
+     */
     public static void importFEN(String fenString) {
         //Not chess960 compatible
         Quetzal.WP = 0;
@@ -159,8 +172,29 @@ public class BoardGenerator {
         }
         //the rest of the fenString is not yet utilized
         //TODO add functionality for the rest of the fenString
+
+        Quetzal.globalBoard = new ChessBoard(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK,
+                Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK,
+                Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove, null);
     }
 
+    /**
+     * Converts a 2D array of strings to bitboards
+     *
+     * @param board 2D array of strings representing the board
+     * @param WP    Bitboard for white pawns
+     * @param WN    Bitboard for white knights
+     * @param WB    Bitboard for white bishops
+     * @param WR    Bitboard for white rooks
+     * @param WQ    Bitboard for white queen
+     * @param WK    Bitboard for white king
+     * @param BP    Bitboard for black pawns
+     * @param BN    Bitboard for black knights
+     * @param BB    Bitboard for black bishops
+     * @param BR    Bitboard for black rooks
+     * @param BQ    Bitboard for black queen
+     * @param BK    Bitboard for black king
+     */
     public static void arrayToBitboards(String[][] board, long WP, long WN, long WB, long WR, long WQ,
                                         long WK, long BP, long BN, long BB, long BR, long BQ, long BK) {
         //Binary string of 64 bits instead of long for easy manipulation
@@ -199,8 +233,17 @@ public class BoardGenerator {
         Quetzal.BR = BR;
         Quetzal.BQ = BQ;
         Quetzal.BK = BK;
+
+        Quetzal.globalBoard = new ChessBoard(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK,
+                0, true, true, true, true, true, null);
     }
 
+    /**
+     * Converts a binary string to a bitboard value
+     *
+     * @param binary Binary string to convert
+     * @return Long bitboard representation of the binary string
+     */
     public static long stringToBitboard(String binary) {
         //Java represents signed integers using two's complement, so we
         //account for this by checking if the first bit is 0 to indicate a
@@ -214,6 +257,22 @@ public class BoardGenerator {
         }
     }
 
+    /**
+     * prints the bitboards as a chess board (for debugging purposes)
+     *
+     * @param WP
+     * @param WN
+     * @param WB
+     * @param WR
+     * @param WQ
+     * @param WK
+     * @param BP
+     * @param BN
+     * @param BB
+     * @param BR
+     * @param BQ
+     * @param BK
+     */
     public static void drawArray(long WP, long WN, long WB, long WR, long WQ, long WK,
                                  long BP, long BN, long BB, long BR, long BQ, long BK) {
         //debugging method to visualize the bitboards as a chess board

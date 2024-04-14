@@ -11,53 +11,46 @@ public class NNUEJNIBridge {
 
 
     public static final String NET_NAME = "nn-6b4236f2ec01.nnue";
+    //Note: for some reason this is the latest NNUE file that is compatible with the JNNUE library
+    //
+    //For this reason and several others, I will eventually rewrite this project in C/C++
 
-    private static final String FILE_SCHEME = "file";
-
-
-//    public static void loadLib() {
-//
-//        try {
-//
-//            String libName = System.mapLibraryName("JNNUE");
-//            Path jarfile = Paths.get(NNUEJNIBridge.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-//            File libFile = jarfile.getParent().resolve(libName).toFile();
-////            if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump("Looking for " + libName + " at location " + libFile);
-//            if (libFile.exists()) {
-//                System.load(libFile.getAbsolutePath());
-////                if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump(libName + " is now loaded");
-//            } else {
-//                URL classpathLibUrl = NNUEJNIBridge.class.getClassLoader().getResource(libName);
-////                if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump("Looking for " + libName + " at location " + classpathLibUrl);
-//                if (classpathLibUrl != null && FILE_SCHEME.equalsIgnoreCase(classpathLibUrl.toURI().getScheme()) && Paths.get(classpathLibUrl.toURI()).toFile().exists()){
-//                    File classpathLibFile = Paths.get(classpathLibUrl.toURI()).toFile();
-//                    System.load(classpathLibFile.getAbsolutePath());
-////                    if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump("Loaded " + libName + " located in the resources directory");
-//                } else {
-////                    if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump("Looking for " + libName + " at java.library.path: " + System.getProperty("java.library.path"));
-//                    System.loadLibrary("JNNUE");
-////                    if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump("Loaded " + libName + " located in the java library path");
-//                }
-//            }
-//
-//        } catch (Throwable t) {
-//
-////            if (ChannelManager.getChannel() != null) ChannelManager.getChannel().dump("Unable to load JNNUE library " + t);
-//        }
-//    }
-
-
+    /**
+     * Initialize the NNUE bridge with the default NNUE file
+     */
     public static void init() {
         init(NET_NAME);
     }
 
-
+    /**
+     * Initialize the NNUE bridge with a custom NNUE file
+     *
+     * @param filename Name of the NNUE file
+     */
     public static native void init(String filename);
 
+    /**
+     * Evaluate the position using the NNUE evaluation function
+     *
+     * @param fen FEN string of the position
+     * @return Evaluation score
+     */
+    @Deprecated //this is extremely slow
     public static native int eval(String fen);
 
+    /**
+     * Evaluate the position using the NNUE evaluation function
+     *
+     * @param color   Color to move
+     * @param pieces  Array of pieces
+     * @param squares Array of squares
+     * @return Evaluation score
+     */
     public static native int eval(int color, int[] pieces, int[] squares);
 
+    /**
+     * Temporary setup method for loading the NNUE and JNNUE library
+     */
     public static void setup() {
         //Temporary method for loading the NNUE and JNNUE library
         File dll = new File("src/NNUE/nnue_probe/JNNUE.dll");

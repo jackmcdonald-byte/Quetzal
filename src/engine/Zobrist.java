@@ -2,7 +2,11 @@ package engine;
 
 import java.security.*;
 
-import static engine.internal.BitBoardConstants.FileMasks8;
+import engine.datastructs.ChessBoard;
+
+import java.math.*;
+
+import static engine.utils.BitBoardConstants.FileMasks8;
 
 public class Zobrist {
     static long[][][] zArray = new long[2][6][64];
@@ -21,9 +25,10 @@ public class Zobrist {
         return random.nextLong();
     }
 
+    /**
+     * Fill the zobrist attributes with evenly distributed random 64-bit numbers
+     */
     public static void zobristFillArray() {
-        //Fill the zobrist attributes with random 64 bit numbers
-        //
         //Note: performance does not matter here, as this is only done once at the start of the program
         for (int color = 0; color < 2; color++) {
             for (int pieceType = 0; pieceType < 6; pieceType++) {
@@ -41,60 +46,70 @@ public class Zobrist {
         zBlackMove = random64();
     }
 
-    public static long getZobristHash(long WP, long WN, long WB, long WR, long WQ, long WK, long BP, long BN, long BB,
-                                      long BR, long BQ, long BK, long EP, boolean CWK, boolean CWQ, boolean CBK,
-                                      boolean CBQ, boolean WhiteToMove) {
+    /**
+     * Zobrist hashing algorithm to generate a unique hash for a given board state
+     *
+     * @param board
+     * @return
+     */
+    //Note: this method is called frequently, so performance is key
+    //Note: 2 unique board states can have the same zobrist key, but the probability of this is near extremely low
+    public static long getZobristHash(ChessBoard board) {
         long returnZKey = 0;
 
         //Begin generating zobrist hash by (XOR)ing the random numbers for each piece on the board
         for (int square = 0; square < 64; square++) {
-            if (((WP >> square) & 1) == 1) {
+            if (((board.getWP() >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][0][square];
-            } else if (((BP >> square) & 1) == 1) {
+            } else if (((board.getBP() >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][0][square];
-            } else if (((WN >> square) & 1) == 1) {
+            } else if (((board.getWN() >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][1][square];
-            } else if (((BN >> square) & 1) == 1) {
+            } else if (((board.getBN() >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][1][square];
-            } else if (((WB >> square) & 1) == 1) {
+            } else if (((board.getWB() >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][2][square];
-            } else if (((BB >> square) & 1) == 1) {
+            } else if (((board.getBB() >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][2][square];
-            } else if (((WR >> square) & 1) == 1) {
+            } else if (((board.getWR() >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][3][square];
-            } else if (((BR >> square) & 1) == 1) {
+            } else if (((board.getBR() >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][3][square];
-            } else if (((WQ >> square) & 1) == 1) {
+            } else if (((board.getWQ() >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][4][square];
-            } else if (((BQ >> square) & 1) == 1) {
+            } else if (((board.getBQ() >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][4][square];
-            } else if (((WK >> square) & 1) == 1) {
+            } else if (((board.getWK() >> square) & 1) == 1) {
                 returnZKey ^= zArray[0][5][square];
-            } else if (((BK >> square) & 1) == 1) {
+            } else if (((board.getBK() >> square) & 1) == 1) {
                 returnZKey ^= zArray[1][5][square];
             }
         }
 
         //Continue by (XOR)ing the en passant, castling, and side to move random numbers
         for (int column = 0; column < 8; column++) {
-            if (EP == FileMasks8[column]) {
+            if (board.getEP() == FileMasks8[column]) {
                 returnZKey ^= zEnPassant[column];
             }
         }
-        if (CWK)
+        if (board.getCWK())
             returnZKey ^= zCastle[0];
-        if (CWQ)
+        if (board.getCWQ())
             returnZKey ^= zCastle[1];
-        if (CBK)
+        if (board.getCBK())
             returnZKey ^= zCastle[2];
-        if (CBQ)
+        if (board.getCBQ())
             returnZKey ^= zCastle[3];
-        if (!WhiteToMove)
+        if (!board.getWhiteToMove())
             returnZKey ^= zBlackMove;
 
-        return returnZKey;
+        //TODO figure out how to work around negative zobrist keys by implementing a better hash function
+        return Math.abs(returnZKey);
     }
 
+    /**
+     * Debug method to test the distribution of the random number generator (copy/paste into a spreadsheet and create a histogram)
+     */
     public static void testDistribution() {
         //Debug method
         int sampleSize = 2000;

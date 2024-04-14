@@ -1,13 +1,17 @@
 package engine;
 
+import engine.datastructs.ChessBoard;
+
 import java.util.*;
 
-import static engine.internal.BitBoardConstants.*;
+import static engine.utils.BitBoardConstants.*;
 
 public class UCI {
     static String ENGINENAME = "Quetzal v1.0";
 
-    //UCI communication loop
+    /**
+     * UCI communication loop
+     */
     public static void uciCommunication() {
         Scanner input = new Scanner(System.in);
         while (true) {
@@ -32,6 +36,9 @@ public class UCI {
         }
     }
 
+    /**
+     * Print engine information for the UCI protocol
+     */
     public static void inputUCI() {
         System.out.println("id name " + ENGINENAME);
         System.out.println("id author Jack McDonald");
@@ -39,18 +46,34 @@ public class UCI {
         System.out.println("uciok");
     }
 
+    /**
+     * Set options for the UCI protocol
+     *
+     * @param inputString Input string from the UCI protocol
+     */
     public static void inputSetOption(String inputString) {
         //TODO set options
     }
 
+    /**
+     * Print "readyok" for the UCI protocol indicating the engine is ready
+     */
     public static void inputIsReady() {
         System.out.println("readyok");
     }
 
+    /**
+     * Start a new game
+     */
     public static void inputUCINewGame() {
         //TODO add code here
     }
 
+    /**
+     * Parse the position command from the UCI protocol and update the global board
+     *
+     * @param input Input string from the UCI protocol
+     */
     public static void inputPosition(String input) {
         input = input.substring(9).concat(" ");
 
@@ -64,19 +87,19 @@ public class UCI {
             BoardGenerator.importFEN(input);
         }
 
+        ChessBoard board = new ChessBoard(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK,
+                Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP, Quetzal.CWK,
+                Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove, null);
+
         //Make each move on global board
         if (input.contains("moves")) {
             input = input.substring(input.indexOf("moves") + 6);
             while (!input.isEmpty()) {
                 String moves;
                 if (Quetzal.WhiteToMove) {
-                    moves = Moves.possibleMovesWhite(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ,
-                            Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK,
-                            Quetzal.EP, Quetzal.CWK, Quetzal.CWQ);
+                    moves = Moves.possibleMovesWhite(board);
                 } else {
-                    moves = Moves.possibleMovesBlack(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ,
-                            Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK,
-                            Quetzal.EP, Quetzal.CBK, Quetzal.CBQ);
+                    moves = Moves.possibleMovesBlack(board);
                 }
                 algebraToMove(input, moves);
                 input = input.substring(input.indexOf(' ') + 1);
@@ -84,14 +107,21 @@ public class UCI {
         }
     }
 
+    /**
+     * Begin the search for the best move
+     */
     public static void inputGo() {
         //Search for best move
-        PVSAlgorithm.principleVariationSearch(-10000, 10000, Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR,
-                Quetzal.WQ, Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK,
-                Quetzal.EP, Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove, 0);
-        System.out.println("bestmove " + moveToAlgebra(PVSAlgorithm.bestMove[0]));
+        PVSAlgorithm.rootSearch(-10000, 10000, Quetzal.searchDepth, PVSAlgorithm.FIXED);
+        System.out.println("bestmove " + moveToAlgebra(PVSAlgorithm.bestMoves.getBestMove()));
     }
 
+    /**
+     * Convert a move from the move format used in the engine to algebraic notation
+     *
+     * @param move Move in internal notation
+     * @return Move in algebraic notation
+     */
     public static String moveToAlgebra(String move) {
         String append = "";
         int start = 0, end = 0;
@@ -128,6 +158,12 @@ public class UCI {
         return returnMove;
     }
 
+    /**
+     * Updates the global board given a series of algebraic moves
+     *
+     * @param input algebraic move
+     * @param moves string of possible moves
+     */
     public static void algebraToMove(String input, String moves) {
         Quetzal.WhiteToMove = !Quetzal.WhiteToMove;
         int start = 0, end = 0;
@@ -210,17 +246,21 @@ public class UCI {
         }
     }
 
+    /**
+     * Quit the engine
+     */
     public static void inputQuit() {
         System.exit(0);
     }
 
+    /**
+     * Debugging method to print the board and Zobrist hash
+     */
     public static void inputPrint() {
         //Debugging method
         BoardGenerator.drawArray(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ, Quetzal.WK, Quetzal.BP,
                 Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK);
         System.out.print("Zobrist Hash: ");
-        System.out.println(Zobrist.getZobristHash(Quetzal.WP, Quetzal.WN, Quetzal.WB, Quetzal.WR, Quetzal.WQ,
-                Quetzal.WK, Quetzal.BP, Quetzal.BN, Quetzal.BB, Quetzal.BR, Quetzal.BQ, Quetzal.BK, Quetzal.EP,
-                Quetzal.CWK, Quetzal.CWQ, Quetzal.CBK, Quetzal.CBQ, Quetzal.WhiteToMove));
+        System.out.println(Zobrist.getZobristHash(Quetzal.globalBoard));
     }
 }

@@ -1,177 +1,150 @@
 package engine;
 
 import NNUE.nnue_probe.nnue.NNUEProbeUtils;
+import engine.datastructs.ChessBoard;
+import engine.datastructs.Move;
+import engine.datastructs.TranspositionTable;
+import engine.datastructs.MoveTree;
+
+import static engine.Quetzal.NULL_INT;
+import static engine.Quetzal.globalBoard;
 
 public class PVSAlgorithm {
-    public static String[] bestMove = new String[20];
+    public static final int ITERATIVE = 1;
+    public static final int FIXED = 2;
+    public static final int SMART = 3;
+    public static final int INFINITE = 4;
+    public static final int TIME = 5;
+    public static MoveTree bestMoves = new MoveTree();
+    static ChessBoard board = globalBoard;
+    public static TranspositionTable tt = new TranspositionTable(board, 12800000);
 
-    public static int nullWindowSearch(int beta, long WP, long WN, long WB, long WR, long WQ, long WK, long BP,
-                                       long BN, long BB, long BR, long BQ, long BK, long EP, boolean CWK,
-                                       boolean CWQ, boolean CBK, boolean CBQ, boolean WhiteToMove, int depth) {
+    /**
+     * Null window search
+     *
+     * @param beta        beta cutoff
+     * @param depth       depth of the search
+     * @param plyFromRoot depth from the root
+     * @return score of the position
+     */
+    public static int nullWindowSearch(int beta, int depth, int plyFromRoot) {
         //Alpha == beta - 1; this is either a cut- or all-node
 
-        int score = Quetzal.NULL_INT;
-        NNUEProbeUtils.Input input = new NNUEProbeUtils.Input();
-        NNUEProbeUtils.fillInput(input, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
+        int score = NULL_INT;
 
-        if (depth == Quetzal.searchDepth) {
-            score = Evaluation.evaluateNNUE(input);
-            return score;
+        if (plyFromRoot > 0) {
+            if (board.isRepeatPosition(board.getZobristKey())) {
+                return 0;
+            }
         }
 
-        String moves = Moves.generateMoves(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK,
-                EP, CWK, CWQ, CBK, CBQ, WhiteToMove);
+        int t = tt.lookupEvaluation(depth, beta - 1, beta);
+        if (t != Integer.MIN_VALUE) {
+            score = tt.getCurrentEval();
+            return t;
+        }
+
+        //TODO add quiescence search
+        if (depth == 0) {
+            NNUEProbeUtils.Input input = new NNUEProbeUtils.Input();
+            NNUEProbeUtils.fillInput(input, board);
+            score = Evaluation.evaluateNNUE(input);
+            return plyFromRoot % 2 == 1 ? score : -score;
+        }
+
+        String moves = Moves.generateMoves(board);
 
         //Check for checkmate or stalemate
         //TODO add 3 fold repetition and stalemate recognition
         //TODO fix checkmate bug
         if (moves.isEmpty()) {
-            if ((WK & Moves.unsafeForWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && WhiteToMove) {
-                return -(Quetzal.MATE_SCORE - depth);
-            } else if ((BK & Moves.unsafeForBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && !WhiteToMove) {
-                return Quetzal.MATE_SCORE - depth;
+            if ((board.getWK() & Moves.unsafeForWhite(board)) != 0 && board.getWhiteToMove()) {
+                return -(Quetzal.MATE_SCORE - plyFromRoot);
+            } else if ((board.getBK() & Moves.unsafeForBlack(board)) != 0 && !board.getWhiteToMove()) {
+                return Quetzal.MATE_SCORE - plyFromRoot;
             } else {
                 return 0;
             }
         }
 
         for (int i = 0; i < moves.length(); i += 4) {
-            char move1 = moves.charAt(i);
-            char move2 = moves.charAt(i + 1);
-            char move3 = moves.charAt(i + 2);
-            char move4 = moves.charAt(i + 3);
 
-            long WPt = Moves.makeMove(WP, move1, move2, move3, move4, 'P'),
-                    WNt = Moves.makeMove(WN, move1, move2, move3, move4, 'N'),
-                    WBt = Moves.makeMove(WB, move1, move2, move3, move4, 'B'),
-                    WRt = Moves.makeMove(WR, move1, move2, move3, move4, 'R'),
-                    WQt = Moves.makeMove(WQ, move1, move2, move3, move4, 'Q'),
-                    WKt = Moves.makeMove(WK, move1, move2, move3, move4, 'K'),
-                    BPt = Moves.makeMove(BP, move1, move2, move3, move4, 'p'),
-                    BNt = Moves.makeMove(BN, move1, move2, move3, move4, 'n'),
-                    BBt = Moves.makeMove(BB, move1, move2, move3, move4, 'b'),
-                    BRt = Moves.makeMove(BR, move1, move2, move3, move4, 'r'),
-                    BQt = Moves.makeMove(BQ, move1, move2, move3, move4, 'q'),
-                    BKt = Moves.makeMove(BK, move1, move2, move3, move4, 'k'),
-                    EPt = Moves.makeMoveEP(WP | BP, String.valueOf(new char[]{move1, move2, move3, move4}));
-            WRt = Moves.makeMoveCastle(WRt, WK | BK,
-                    String.valueOf(new char[]{move1, move2, move3, move4}), 'R');
-            BRt = Moves.makeMoveCastle(BRt, WK | BK,
-                    String.valueOf(new char[]{move1, move2, move3, move4}), 'r');
-            boolean CWKt = CWK, CWQt = CWQ, CBKt = CBK, CBQt = CBQ;
+            board.makeMove(moves, i, true);
 
-            if (Character.isDigit(moves.charAt(i + 3))) { //'Regular' move
-                int start = (Character.getNumericValue(moves.charAt(i)) * 8)
-                        + (Character.getNumericValue(moves.charAt(i + 1)));
-                if (((1L << start) & WK) != 0) {
-                    CWKt = false;
-                    CWQt = false;
-                } else if (((1L << start) & BK) != 0) {
-                    CBKt = false;
-                    CBQt = false;
-                } else if (((1L << start) & WR & (1L << 63)) != 0) {
-                    CWKt = false;
-                } else if (((1L << start) & WR & (1L << 56)) != 0) {
-                    CWQt = false;
-                } else if (((1L << start) & BR & (1L << 7)) != 0) {
-                    CBKt = false;
-                } else if (((1L << start) & BR & 1L) != 0) {
-                    CBQt = false;
-                }
+            //TODO add unsafe for white and unsafe for black as attributes to Board class
+            if (((board.getWK() & Moves.unsafeForWhite(board)) == 0 && board.getWhiteToMove())
+                    || ((board.getBK() & Moves.unsafeForBlack(board)) == 0 && !board.getWhiteToMove())) {
+                score = -nullWindowSearch(1 - beta, depth - 1, plyFromRoot + 1);
             }
 
-            //May be unnecessary
-            //TODO test later
-            if (((WKt & Moves.unsafeForWhite(WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt)) == 0
-                    && WhiteToMove) ||
-                    ((BKt & Moves.unsafeForBlack(WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt)) == 0
-                            && !WhiteToMove)) {
-                score = -nullWindowSearch(1 - beta, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt,
-                        BQt, BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
-            }
+            board.undoMove(true);
+
             if (score >= beta) {
+                tt.storeEvaluation(depth, TranspositionTable.LOWER, score, moves.substring(i, i + 4));
                 return score; //Fail-hard beta-cutoff
             }
         }
         return beta - 1; //Fail-hard, return alpha
     }
 
-    public static int principleVariationSearch(int alpha, int beta, long WP, long WN, long WB, long WR, long WQ,
-                                               long WK, long BP, long BN, long BB, long BR, long BQ, long BK,
-                                               long EP, boolean CWK, boolean CWQ, boolean CBK, boolean CBQ,
-                                               boolean WhiteToMove, int depth) {
+    /**
+     * Principle variation search
+     *
+     * @param alpha       alpha cutoff
+     * @param beta        beta cutoff
+     * @param depth       depth of the search
+     * @param plyFromRoot depth from the root
+     * @param parent      parent node
+     * @return score of the position
+     */
+    public static int principleVariationSearch(int alpha, int beta, int depth, int plyFromRoot, MoveTree.MoveNode parent) {
         int bestScore;
 
-        NNUEProbeUtils.Input input = new NNUEProbeUtils.Input();
-        NNUEProbeUtils.fillInput(input, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK);
-        if (depth == Quetzal.searchDepth) {
-            bestScore = Evaluation.evaluateNNUE(input);
-            return bestScore;
+        if (plyFromRoot > 0) {
+            if (board.isRepeatPosition(globalBoard.getZobristKey())) {
+                return 0;
+            }
         }
 
-        String moves = Moves.generateMoves(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK,
-                EP, CWK, CWQ, CBK, CBQ, WhiteToMove);
+        //TODO depth issue
+        int t = tt.lookupEvaluation(depth, beta - 1, beta);
+        if (t != Integer.MIN_VALUE) {
+            bestMoves.addMove(tt.getCurrentMove(), t, parent);
+            return t;
+        }
+
+        if (depth == 0) {
+            NNUEProbeUtils.Input input = new NNUEProbeUtils.Input();
+            NNUEProbeUtils.fillInput(input, board);
+            bestScore = Evaluation.evaluateNNUE(input);
+            return plyFromRoot % 2 == 1 ? bestScore : -bestScore;
+        }
+
+        String moves = Moves.generateMoves(board);
+        int hashFlag = TranspositionTable.UPPER;
 
         //Check for checkmate or stalemate
         //TODO add 3 fold repetition recognition
         if (moves.isEmpty()) {
-            if ((WK & Moves.unsafeForWhite(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && WhiteToMove) {
-                return -(Quetzal.MATE_SCORE - depth);
-            } else if ((BK & Moves.unsafeForBlack(WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK)) != 0 && !WhiteToMove) {
-                return Quetzal.MATE_SCORE - depth;
+            if ((board.getWK() & Moves.unsafeForWhite(board)) != 0 && board.getWhiteToMove()) {
+                return -(Quetzal.MATE_SCORE - plyFromRoot);
+            } else if ((board.getBK() & Moves.unsafeForBlack(board)) != 0 && !board.getWhiteToMove()) {
+                return Quetzal.MATE_SCORE - plyFromRoot;
             } else {
                 return 0;
             }
         }
 
-        bestMove[depth] = moves.substring(0, 4);
+        Move current = new Move(moves.substring(0, 4), NULL_INT, depth);
+        bestMoves.addMove(current, parent);
 
-        char move1 = moves.charAt(0);
-        char move2 = moves.charAt(1);
-        char move3 = moves.charAt(2);
-        char move4 = moves.charAt(3);
+        board.makeMove(moves, 0, true);
 
-        long WPt = Moves.makeMove(WP, move1, move2, move3, move4, 'P'),
-                WNt = Moves.makeMove(WN, move1, move2, move3, move4, 'N'),
-                WBt = Moves.makeMove(WB, move1, move2, move3, move4, 'B'),
-                WRt = Moves.makeMove(WR, move1, move2, move3, move4, 'R'),
-                WQt = Moves.makeMove(WQ, move1, move2, move3, move4, 'Q'),
-                WKt = Moves.makeMove(WK, move1, move2, move3, move4, 'K'),
-                BPt = Moves.makeMove(BP, move1, move2, move3, move4, 'p'),
-                BNt = Moves.makeMove(BN, move1, move2, move3, move4, 'n'),
-                BBt = Moves.makeMove(BB, move1, move2, move3, move4, 'b'),
-                BRt = Moves.makeMove(BR, move1, move2, move3, move4, 'r'),
-                BQt = Moves.makeMove(BQ, move1, move2, move3, move4, 'q'),
-                BKt = Moves.makeMove(BK, move1, move2, move3, move4, 'k'),
-                EPt = Moves.makeMoveEP(WP | BP, String.valueOf(new char[]{move1, move2, move3, move4}));
-        WRt = Moves.makeMoveCastle(WRt, WK | BK,
-                String.valueOf(new char[]{move1, move2, move3, move4}), 'R');
-        BRt = Moves.makeMoveCastle(BRt, WK | BK,
-                String.valueOf(new char[]{move1, move2, move3, move4}), 'r');
-        boolean CWKt = CWK, CWQt = CWQ, CBKt = CBK, CBQt = CBQ;
-
-        if (Character.isDigit(moves.charAt(3))) { //'Regular' move
-            int start = (Character.getNumericValue(moves.charAt(0)) * 8) + (Character.getNumericValue(moves.charAt(1)));
-            if (((1L << start) & WK) != 0) {
-                CWKt = false;
-                CWQt = false;
-            } else if (((1L << start) & BK) != 0) {
-                CBKt = false;
-                CBQt = false;
-            } else if (((1L << start) & WR & (1L << 63)) != 0) {
-                CWKt = false;
-            } else if (((1L << start) & WR & (1L << 56)) != 0) {
-                CWQt = false;
-            } else if (((1L << start) & BR & (1L << 7)) != 0) {
-                CBKt = false;
-            } else if (((1L << start) & BR & 1L) != 0) {
-                CBQt = false;
-            }
-        }
-
-        bestScore = -principleVariationSearch(-beta, -alpha, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt,
-                BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
+        bestScore = -principleVariationSearch(-beta, -alpha, depth - 1, plyFromRoot + 1, parent.getBestMove());
+        current.setScore(bestScore);
         Quetzal.moveCounter++;
+
+        board.undoMove(true);
 
         if (bestScore > alpha) {
             if (bestScore >= beta) {
@@ -179,84 +152,140 @@ public class PVSAlgorithm {
                 //It is not a PV move
                 //However, it will usually cause a cutoff, so it can
                 //be considered the best move if no other move is found
+                tt.storeEvaluation(depth, TranspositionTable.LOWER, bestScore, current.getMoveString());
                 return bestScore;
             }
             alpha = bestScore;
+            hashFlag = TranspositionTable.EXACT;
         }
+
         for (int i = 4; i < moves.length(); i += 4) {
             int score;
             Quetzal.moveCounter++;
+            current = new Move(moves.substring(i, i + 4), NULL_INT, depth);
 
-            //Legal, non-castle move
-            move1 = moves.charAt(i);
-            move2 = moves.charAt(i + 1);
-            move3 = moves.charAt(i + 2);
-            move4 = moves.charAt(i + 3);
-
-            WPt = Moves.makeMove(WP, move1, move2, move3, move4, 'P');
-            WNt = Moves.makeMove(WN, move1, move2, move3, move4, 'N');
-            WBt = Moves.makeMove(WB, move1, move2, move3, move4, 'B');
-            WRt = Moves.makeMove(WR, move1, move2, move3, move4, 'R');
-            WQt = Moves.makeMove(WQ, move1, move2, move3, move4, 'Q');
-            WKt = Moves.makeMove(WK, move1, move2, move3, move4, 'K');
-            BPt = Moves.makeMove(BP, move1, move2, move3, move4, 'p');
-            BNt = Moves.makeMove(BN, move1, move2, move3, move4, 'n');
-            BBt = Moves.makeMove(BB, move1, move2, move3, move4, 'b');
-            BRt = Moves.makeMove(BR, move1, move2, move3, move4, 'r');
-            BQt = Moves.makeMove(BQ, move1, move2, move3, move4, 'q');
-            BKt = Moves.makeMove(BK, move1, move2, move3, move4, 'k');
-            EPt = Moves.makeMoveEP(WP | BP, String.valueOf(new char[]{move1, move2, move3, move4}));
-            WRt = Moves.makeMoveCastle(WRt, WK | BK,
-                    String.valueOf(new char[]{move1, move2, move3, move4}), 'R');
-            BRt = Moves.makeMoveCastle(BRt, WK | BK,
-                    String.valueOf(new char[]{move1, move2, move3, move4}), 'r');
-
-            if (Character.isDigit(moves.charAt(i + 3))) { //'Regular' move
-                int start = (Character.getNumericValue(moves.charAt(i)) * 8)
-                        + (Character.getNumericValue(moves.charAt(i + 1)));
-                if (((1L << start) & WK) != 0) {
-                    CWKt = false;
-                    CWQt = false;
-                } else if (((1L << start) & BK) != 0) {
-                    CBKt = false;
-                    CBQt = false;
-                } else if (((1L << start) & WR & (1L << 63)) != 0) {
-                    CWKt = false;
-                } else if (((1L << start) & WR & (1L << 56)) != 0) {
-                    CWQt = false;
-                } else if (((1L << start) & BR & (1L << 7)) != 0) {
-                    CBKt = false;
-                } else if (((1L << start) & BR & 1L) != 0) {
-                    CBQt = false;
-                }
-            }
+            board.makeMove(moves, i, true);
 
             //Lightweight search for move stronger than alpha
-            score = -nullWindowSearch(-alpha, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt, BKt, EPt, CWKt,
-                    CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
+            score = -nullWindowSearch(-alpha, depth - 1, plyFromRoot + 1);
+
             if ((score > alpha) && (score < beta)) {
                 //Research with window [alpha;beta] if the move is promising
-                score = -principleVariationSearch(-beta, -alpha, WPt, WNt, WBt, WRt, WQt, WKt, BPt, BNt, BBt, BRt, BQt,
-                        BKt, EPt, CWKt, CWQt, CBKt, CBQt, !WhiteToMove, depth + 1);
+                score = -principleVariationSearch(-beta, -alpha, depth - 1, plyFromRoot + 1, parent.getBestMove());
                 if (score > alpha) {
-                    bestMove[depth] = moves.substring(i, i + 4);
+                    bestMoves.addMove(current, parent);
+                    current.setScore(score);
                     alpha = score;
+                    hashFlag = TranspositionTable.EXACT;
                 }
             }
 
+            board.undoMove(true);
+
             //Check for cutoff
-            if ((score != Quetzal.NULL_INT) && (score > bestScore)) {
-                bestMove[depth] = moves.substring(i, i + 4);
+            if ((score != NULL_INT) && (score > bestScore)) {
+                if (!parent.getBestMove().getMove().equals(current)) {
+                    bestMoves.addMove(current, parent);
+                    current.setScore(score);
+                }
                 if (score >= beta) {
+                    tt.storeEvaluation(depth, TranspositionTable.LOWER, score, current.getMoveString());
                     return score;
                 }
                 bestScore = score;
-                //TODO delete after optimization
-                if (Math.abs(bestScore) >= Quetzal.MATE_SCORE - Quetzal.MAX_SEARCH_DEPTH) {
-                    return bestScore;
-                }
             }
+            tt.storeEvaluation(depth, hashFlag, bestScore, parent.getBestMove().getMoveString());
         }
         return bestScore;
+    }
+
+    /**
+     * Root search
+     *
+     * @param alpha alpha cutoff
+     * @param beta  beta cutoff
+     * @param depth depth of the search
+     * @param flag  flag for the search
+     * @return score of the position
+     */
+    public static int rootSearch(int alpha, int beta, int depth, int flag) {
+        int bestScore = NULL_INT;
+        tt.clear();
+
+        if (flag == ITERATIVE) {
+            for (int i = 1; i <= depth; i++) {
+                int bestEval = principleVariationSearch(-10000, 10000, i, 0, bestMoves.getRoot());
+
+//                if (abortSearch) break;
+
+                String best = bestMoves.getBestMove();
+                int finalDepth = i;
+
+                System.out.println("info depth " + finalDepth + " score cp " + bestEval + " pv " + UCI.moveToAlgebra(best));
+
+                // Stop the search if mate is found
+                if (Math.abs(bestEval) == Quetzal.MATE_SCORE && finalDepth > 2) {
+                    break;
+                }
+            }
+        } else if (flag == FIXED) {
+
+            return Integer.max(principleVariationSearch(alpha, beta, depth, 0, bestMoves.getRoot()), bestScore);
+
+        } else if (flag == SMART) {
+
+            bestScore = principleVariationSearch(alpha, beta, 5, 0, bestMoves.getRoot());
+
+            for (int i = 1; i <= 9; i++) {
+                smartSearch(alpha, beta, 5, 0, bestMoves.getRoot(), i);
+                System.out.println("best move: " + UCI.moveToAlgebra(bestMoves.getBestMove()));
+            }
+
+            bestScore = Math.max(bestScore, bestMoves.getBestMoveScore());
+
+        } else {
+            System.out.println("Invalid flag");
+        }
+        return bestScore;
+    }
+
+    public static void smartSearch(int alpha, int beta, int depth, int plyFromRoot, MoveTree.MoveNode parent, int MaxPly) {
+
+//        if (plyFromRoot > MaxPly) {
+//            return;
+//        }
+//
+//        int counter = 0;
+//        for (MoveTree.MoveNode child : bestMoves.getNextMoves(parent)) {
+//            if (counter > 3) {
+//                break;
+//            }
+//
+//            board.makeMove(child.getMoveString(), 0, true);
+//            child.clearChildren();
+//            int score = -principleVariationSearch(alpha, beta, 3, plyFromRoot + 1, child);
+//            board.undoMove(true);
+////            if (board.getWhiteToMove()) { score = -score; }
+//            System.out.println("info depth " + plyFromRoot + " score cp " + score + " pv " + UCI.moveToAlgebra(bestMoves.getBestMove()) + " " + UCI.moveToAlgebra(child.getMoveString()));
+//            child.setMoveScore(score);
+//            counter++;
+//        }
+//
+//        bestMoves.sortMovesByScore(parent);
+////        System.out.println("info depth " + plyFromRoot + " score cp " + bestMoves.getBestMoveScore() + " pv " + UCI.moveToAlgebra(bestMoves.getBestMove()));
+//
+//        counter = 0;
+//        for (MoveTree.MoveNode child : bestMoves.getNextMoves(parent)) {
+//            board.makeMove(child.getMoveString(), 0, true);
+//            smartSearch(alpha, beta, depth, plyFromRoot + 1, child, MaxPly);
+//            board.undoMove(true);
+//
+//            if (counter >= (1 - plyFromRoot) * 3) {
+//                break;
+//            }
+//            counter++;
+//        }
+
+        return;
     }
 }

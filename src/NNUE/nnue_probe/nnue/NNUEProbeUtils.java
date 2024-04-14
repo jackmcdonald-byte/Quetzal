@@ -1,6 +1,7 @@
 package NNUE.nnue_probe.nnue;
 
 import engine.*;
+import engine.datastructs.ChessBoard;
 
 public class NNUEProbeUtils {
     private static final int[] SQUARE_MAPPING = new int[]{
@@ -15,8 +16,8 @@ public class NNUEProbeUtils {
     };
 
     /**
-     * Evaluation subroutine suitable for chess engines.
-     * -------------------------------------------------
+     * Evaluation subroutine
+     * <p>
      * Piece codes are
      * wking=1, wqueen=2, wrook=3, wbishop= 4, wknight= 5, wpawn= 6,
      * bking=7, bqueen=8, brook=9, bbishop=10, bknight=11, bpawn=12,
@@ -32,23 +33,22 @@ public class NNUEProbeUtils {
      * Returns
      * Score relative to side to move in approximate centi-pawns
      */
-    public static void fillInput(Input input, long WP, long WN, long WB, long WR, long WQ, long WK,
-                                 long BP, long BN, long BB, long BR, long BQ, long BK) {
+    public static void fillInput(Input input, ChessBoard board) {
 
         input.color = Quetzal.WhiteToMove ? 1 : 0;
 
-        long bb_w_king = WK;
-        long bb_b_king = BK;
-        long bb_w_queens = WQ;
-        long bb_b_queens = BQ;
-        long bb_w_rooks = WR;
-        long bb_b_rooks = BR;
-        long bb_w_bishops = WB;
-        long bb_b_bishops = BB;
-        long bb_w_knights = WN;
-        long bb_b_knights = BN;
-        long bb_w_pawns = WP;
-        long bb_b_pawns = BP;
+        long bb_w_king = board.getWK();
+        long bb_b_king = board.getBK();
+        long bb_w_queens = board.getWQ();
+        long bb_b_queens = board.getBQ();
+        long bb_w_rooks = board.getWR();
+        long bb_b_rooks = board.getBR();
+        long bb_w_bishops = board.getWB();
+        long bb_b_bishops = board.getBB();
+        long bb_w_knights = board.getWN();
+        long bb_b_knights = board.getBN();
+        long bb_w_pawns = board.getWP();
+        long bb_b_pawns = board.getBP();
 
         int index = 0;
         int square_type = 1;
@@ -158,6 +158,12 @@ public class NNUEProbeUtils {
     }
 
 
+    /**
+     * Get the square ID from a bitboard
+     *
+     * @param bitboard Bitboard to get the square ID from
+     * @return Square ID
+     */
     private static int getSquareID(long bitboard) {
 
         int result = Long.numberOfTrailingZeros(bitboard);
@@ -167,6 +173,29 @@ public class NNUEProbeUtils {
         return result;
     }
 
+    /**
+     * Convert a board to a FEN string
+     *
+     * @param WP          White pawn bitboard
+     * @param WN          White knight bitboard
+     * @param WB          White bishop bitboard
+     * @param WR          White rook bitboard
+     * @param WQ          White queen bitboard
+     * @param WK          White king bitboard
+     * @param BP          Black pawn bitboard
+     * @param BN          Black knight bitboard
+     * @param BB          Black bishop bitboard
+     * @param BR          Black rook bitboard
+     * @param BQ          Black queen bitboard
+     * @param BK          Black king bitboard
+     * @param EP          En passant square
+     * @param CWK         White can castle kingside
+     * @param CWQ         White can castle queenside
+     * @param CBK         Black can castle kingside
+     * @param CBQ         Black can castle queenside
+     * @param WhiteToMove True if white is to move
+     * @return FEN string
+     */
     public static String boardToFen(long WP, long WN, long WB, long WR, long WQ, long WK,
                                     long BP, long BN, long BB, long BR, long BQ, long BK,
                                     long EP, boolean CWK, boolean CWQ, boolean CBK,
@@ -301,6 +330,9 @@ public class NNUEProbeUtils {
         return fen.toString();
     }
 
+    /**
+     * Input class for NNUE evaluation
+     */
     public static class Input {
         public int color;
         public int[] pieces = new int[33];
