@@ -6,4 +6,9 @@ import engine.*;
 import NNUE.nnue_probe.nnue.NNUEJNIBridge;
 
 class ChessEngineTest {
+
+    @Test
+    void testCheckmateAnalysis() {
+       //
+    }
 }

@@ -2,66 +2,31 @@
 A Java-based UCI chess engine
 ## Description
 
-Provide a short description explaining the what, why, and how of your project. Use the following questions as a guide:
+Quetzal is a UCI compatible chess engine written in Java. The engine uses a neural network to evaluate the position of the chess board. The neural network is based on the NNUE (Efficiently Updatable Neural Network) architecture. The engine is capable of playing chess at a high level and can be used with any UCI compatible chess GUI.
 
-- What was your motivation?
-- Why did you build this project? (Note: the answer is not "Because it was a homework assignment.")
-- What problem does it solve?
-- What did you learn?
-
-## Table of Contents (Optional)
-
-If your README is long, add a table of contents to make it easy for users to find what they need.
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [Credits](#credits)
-- [License](#license)
-
-## Installation
-
-What are the steps required to install your project? Provide a step-by-step description of how to get the development environment running.
-
-## Usage
-
-Provide instructions and examples for use. Include screenshots as needed.
-
-To add a screenshot, create an `assets/images` folder in your repository and upload your screenshot to it. Then, using the relative filepath, add it to your README using the following syntax:
-
-    ```md
-    ![alt text](assets/images/screenshot.png)
-    ```
-
-## Credits
-
-List your collaborators, if any, with links to their GitHub profiles.
-
-If you used any third-party assets that require attribution, list the creators with links to their primary web presence in this section.
-
-If you followed tutorials, include links to those here as well.
-
-## License
-
-The last section of a high-quality README file is the license. This lets other developers know what they can and cannot do with your project. If you need help choosing a license, refer to [https://choosealicense.com/](https://choosealicense.com/).
-
----
-
-🏆 The previous sections are the bare minimum, and your project will ultimately determine the content of this document. You might also want to consider adding the following sections.
-
-## Badges
-
-![badmath](https://img.shields.io/github/languages/top/lernantino/badmath)
-
-Badges aren't necessary, per se, but they demonstrate street cred. Badges let other developers know that you know what you're doing. Check out the badges hosted by [shields.io](https://shields.io/). You may not understand what they all represent now, but you will in time.
+I began this project out of an interest in the world of chess programming. Almost every modern chess engine is written in C/C++ with near perfect optimization which gives this field a very high barrier to entry. I wanted to create a chess engine that was written in a high-level language and was easy to understand, but still utilizes modern techniques and algorithms such as zobrist hashing, transposition tables, principle variation search, and more to play chess at a high level. 
+I also wanted to experiment with neural networks and see how they could be used to evaluate chess positions.
 
 ## Features
 
-If your project has a lot of features, list them here.
+Early stage - nothing is finalised yet!
 
-## How to Contribute
+## Installation
 
-If you created an application or package and would like other developers to contribute it, you can include guidelines for how to do so. The [Contributor Covenant](https://www.contributor-covenant.org/) is an industry standard, but you can always write your own if you'd prefer.
+To use this engine, simply build the Quetzal.jar file using the provided source code. The engine requires a NNUE file to function. The NNUE file is a neural network file that is used to evaluate the position of the chess board. The NNUE file is provided in this repository. You can download other NNUE files from the Stockfish website. The file should have a .nnue extension and should be placed in the same directory as the Quetzal.jar file.
 
-## Tests
+## Usage
 
-Go the extra mile and write tests for your application. Then provide examples on how to run them here.
+Quetzal is a UCI compatible chess engine. It can be used with any UCI compatible chess GUI such as *Arena*.
+Simply follow the GUI's instructions to load the engine and select the Quetzal.jar file as the engine executable.
+
+Please ensure that the Quetzal.jar file is in the same directory as the NNUE file.
+
+For more information on how to use the UCI Protocol, please refer to the UCI Protocol documentation.
+https://backscattering.de/chess/uci/2006-04.txt
+
+## Credits
+
+NNUE Probe library - Developed by Daniel Shawul (https://github.com/dshawul)
+
+---
