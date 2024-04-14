@@ -1,4 +1,4 @@
-package engine.datastructs;
+package engine.utils;
 
 import static engine.utils.Constants.primes;
 
