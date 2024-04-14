@@ -28,5 +28,10 @@ https://backscattering.de/chess/uci/2006-04.txt
 ## Credits
 
 NNUE Probe library - Developed by Daniel Shawul (https://github.com/dshawul)
+- Since Java has no support for loading NNUEs whatsoever, I used Daniel Shawul's NNUE Probe library to load the NNUE file and evaluate the position of the chess board. The library is written in C/C++ and I used JNI to call the library from Java. I would write my own library for this, but I frankly don't have the time or expertise to do so when all NNUE documentation is exclusive to C/C++.
+
+## Future Plans
+
+After completing this project, I would later like to write Quetzal 2.0 in C/C++ to improve performance and to have more control over the engine. I would also like to experiment with training other neural networks and see how they can be used to evaluate chess positions.
 
 ---
