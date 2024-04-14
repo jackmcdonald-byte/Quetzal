@@ -211,12 +211,13 @@ public class PVSAlgorithm {
     public static int rootSearch(int alpha, int beta, int depth, int flag) {
         int bestScore = NULL_INT;
         tt.clear();
+        boolean abortSearch = false;
 
         if (flag == ITERATIVE) {
             for (int i = 1; i <= depth; i++) {
                 int bestEval = principleVariationSearch(-10000, 10000, i, 0, bestMoves.getRoot());
 
-//                if (abortSearch) break;
+                if (abortSearch) break;
 
                 String best = bestMoves.getBestMove();
                 int finalDepth = i;
@@ -250,42 +251,6 @@ public class PVSAlgorithm {
     }
 
     public static void smartSearch(int alpha, int beta, int depth, int plyFromRoot, MoveTree.MoveNode parent, int MaxPly) {
-
-//        if (plyFromRoot > MaxPly) {
-//            return;
-//        }
-//
-//        int counter = 0;
-//        for (MoveTree.MoveNode child : bestMoves.getNextMoves(parent)) {
-//            if (counter > 3) {
-//                break;
-//            }
-//
-//            board.makeMove(child.getMoveString(), 0, true);
-//            child.clearChildren();
-//            int score = -principleVariationSearch(alpha, beta, 3, plyFromRoot + 1, child);
-//            board.undoMove(true);
-////            if (board.getWhiteToMove()) { score = -score; }
-//            System.out.println("info depth " + plyFromRoot + " score cp " + score + " pv " + UCI.moveToAlgebra(bestMoves.getBestMove()) + " " + UCI.moveToAlgebra(child.getMoveString()));
-//            child.setMoveScore(score);
-//            counter++;
-//        }
-//
-//        bestMoves.sortMovesByScore(parent);
-////        System.out.println("info depth " + plyFromRoot + " score cp " + bestMoves.getBestMoveScore() + " pv " + UCI.moveToAlgebra(bestMoves.getBestMove()));
-//
-//        counter = 0;
-//        for (MoveTree.MoveNode child : bestMoves.getNextMoves(parent)) {
-//            board.makeMove(child.getMoveString(), 0, true);
-//            smartSearch(alpha, beta, depth, plyFromRoot + 1, child, MaxPly);
-//            board.undoMove(true);
-//
-//            if (counter >= (1 - plyFromRoot) * 3) {
-//                break;
-//            }
-//            counter++;
-//        }
-
-        return;
+        //TODO
     }
 }
